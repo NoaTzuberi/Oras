@@ -1,0 +1,86 @@
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 70px;
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.8);
+  box-shadow: 0 -4px 24px rgba(90,100,200,0.08);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  direction: ltr;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 12px;
+  color: #a5a8c8;
+  transition: color 150ms var(--ease-out);
+}
+
+.nav-item span {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.nav-item svg {
+  font-size: 20px;
+  transition: transform 150ms var(--ease-out);
+}
+
+.nav-item:active svg {
+  transform: scale(0.87);
+  transition: transform 100ms var(--ease-out);
+}
+
+.nav-item--active { color: #6366f1; }
+.nav-item--active svg { filter: drop-shadow(0 0 6px rgba(99,102,241,0.4)); }
+.nav-item--active span { font-weight: 600; }
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-item:hover svg { transform: translateY(-2px); }
+}
+
+.add-button {
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 58px; height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #5b7ee5, #8b5cf6);
+  color: white;
+  font-size: 28px;
+  border: 3px solid rgba(255,255,255,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(99,102,241,0.4);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
+  z-index: 101;
+}
+
+.add-button:active {
+  transform: translateX(-50%) scale(0.94);
+  box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+  transition: transform 100ms var(--ease-out), box-shadow 100ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .add-button:hover {
+    transform: translateX(-50%) scale(1.08);
+    box-shadow: 0 12px 32px rgba(99,102,241,0.5);
+  }
+}

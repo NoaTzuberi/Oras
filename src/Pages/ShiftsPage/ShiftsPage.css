@@ -1,0 +1,198 @@
+.shifts-page {
+  min-height: 100vh;
+  position: relative;
+  z-index: 2;
+  direction: rtl;
+}
+
+.shifts-content {
+  padding: 20px 16px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.shifts-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #3730a3;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: titleIn 300ms var(--ease-out) forwards;
+}
+
+@keyframes titleIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Summary bar ────────────────────────────────── */
+.shifts-summary {
+  background: linear-gradient(145deg, rgba(255,255,255,0.82), rgba(255,255,255,0.55));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 20px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(90,100,200,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+  opacity: 0;
+  animation: titleIn 350ms var(--ease-out) 60ms forwards;
+}
+
+.shifts-summary__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+}
+
+.shifts-summary__label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: #a5a8c8;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.shifts-summary__value {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.shifts-summary__value--net {
+  background: linear-gradient(135deg, #10b981, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.shifts-summary__hint {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  color: #c4b5fd;
+}
+
+.shifts-summary__divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(196,181,253,0.25);
+}
+
+
+
+/* ── Grid ───────────────────────────────────────── */
+.shifts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  max-width: 700px;
+  align-items: center;
+  margin: auto;
+  margin-top: 30px;
+}
+
+/* ── Empty ──────────────────────────────────────── */
+.shifts-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 8px;
+  text-align: center;
+  opacity: 0;
+  animation: titleIn 400ms var(--ease-out) 100ms forwards;
+}
+
+.shifts-empty p {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #3730a3;
+  margin: 0;
+}
+
+.shifts-empty span {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: #a5a8c8;
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 10px 0 20px;
+  padding: 10px 14px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.82), rgba(255,255,255,0.55));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.8);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(90,100,200,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+  animation: titleIn 300ms var(--ease-out) forwards;
+  direction: ltr;
+
+}
+
+.month-nav button {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+
+  box-shadow: 0 4px 10px rgba(79,70,229,0.25);
+
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.month-nav button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(79,70,229,0.35);
+}
+
+.month-nav button:active {
+  transform: translateY(0px);
+  box-shadow: 0 3px 8px rgba(79,70,229,0.2);
+}
+
+.month-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #3730a3;
+
+  padding: 6px 12px;
+  border-radius: 12px;
+
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.7);
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}

@@ -1,0 +1,54 @@
+.lang-toggle {
+  border: none;
+  cursor: pointer;
+
+  padding: 6px 10px;
+  border-radius: 999px;
+  height: 40px;
+  margin-top: 30px;
+
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px);
+
+  border: 1px solid rgba(139, 92, 246, 0.25);
+
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+
+  color: #4f46e5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 200ms ease;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
+}
+
+/* hover */
+.lang-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.18);
+}
+
+/* active click */
+.lang-toggle:active {
+  transform: scale(0.96);
+}
+
+/* מצב עברית */
+.lang-toggle.he {
+  background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12));
+}
+
+/* מצב אנגלית */
+.lang-toggle.en {
+  background: linear-gradient(135deg, rgba(79,70,229,0.12), rgba(124,58,237,0.12));
+}
+
+.lang-toggle__inner {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
