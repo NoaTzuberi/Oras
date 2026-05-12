@@ -1,73 +1,70 @@
-# React + TypeScript + Vite
+# Oras 💼
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-stack shift management and salary tracking application designed to help users manage their working hours, income, and tax-related calculations in a simple and transparent way.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 📌 About the Project
 
-## React Compiler
+Oras allows users to log and manage their shifts in a flexible way — either by hourly tracking, manual entry, or by entering a full daily salary.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Based on the collected data, the system automatically calculates:
+- Total monthly working hours
+- Gross and net income
+- Average hourly wage
+- Tax deductions and credits based on personal data (e.g. Form 101 points)
+- Salary changes based on tax brackets
 
-## Expanding the ESLint configuration
+The application provides a clear financial overview in a centralized dashboard, making it easier for users to understand their real earnings and tax impact.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## ✨ Key Features
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- 🔐 User authentication and secure login (JWT-based)
+- 🕒 Flexible shift tracking (hourly / manual / daily salary input)
+- 💰 Automatic salary calculations (gross, net, hourly average)
+- 📊 Interactive dashboard with financial insights
+- 🧾 Tax credit and deduction calculations based on user profile
+- 🌍 Multi-language support (i18n)
+- 📱 Fully responsive UI for mobile and desktop
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🧠 Core Functionality
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Users can create and edit shifts dynamically
+- System calculates total work hours per month automatically
+- Salary is computed based on user-defined wage or daily input
+- Tax system adjusts net salary based on personal tax data
+- Dashboard aggregates all financial data into one view
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+
+## 🛠 Tech Stack
+
+- React
+- TypeScript
+- Vite
+- Node.js
+- Supabase (Auth + Database)
+- Context API
+- CSS Modules
+- i18n (Internationalization)
+
+---
+
+## 📸 Preview
+
+(Add screenshots here of:)
+- Dashboard
+- Add Shift page
+- Auth page
+
+---
+
+## 🚀 Getting Started
+
+```bash
+npm install
+npm run dev
