@@ -27,8 +27,7 @@ The application provides a clear financial overview in a centralized dashboard, 
 - 📊 Interactive dashboard with financial insights
 - 🧾 Tax credit and deduction calculations based on user profile
 - 🌍 Multi-language support (i18n)
-- 📱 Fully responsive UI for mobile and desktop
-
+- 💻 Desktop-first responsive design
 ---
 
 ## 🧠 Core Functionality
