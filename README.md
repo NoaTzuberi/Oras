@@ -65,6 +65,7 @@ The application provides a clear financial overview in a centralized dashboard, 
 <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/627a7509-966f-4a78-92d3-76a33a45acd0" />
 
 -Setting Page
+<img width="958" height="863" alt="image" src="https://github.com/user-attachments/assets/45f31412-07fe-4d46-9d64-100b48f8102b" />
 
 -Shifts Page
 <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/2af1e6d9-4d1e-45a3-9c91-e6989babe11a" />
