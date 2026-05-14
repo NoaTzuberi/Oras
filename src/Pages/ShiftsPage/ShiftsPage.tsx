@@ -107,7 +107,12 @@ const monthLabel = `${
           </div>
         ) : (
           <div className="shifts-grid">
-            {filteredShifts.map((shift, i) => (
+            {filteredShifts
+              .sort(
+               (a, b) =>
+                  new Date(b.date).getTime() - new Date(a.date).getTime()
+              )
+              .map((shift, i) => (
               <ShiftCard
                 key={shift.id}
                 shift={shift}
