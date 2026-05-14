@@ -55,10 +55,19 @@ The application provides a clear financial overview in a centralized dashboard, 
 
 ## 📸 Preview
 
-(Add screenshots here of:)
 - Dashboard
+  <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/8e909410-fded-44af-a2c6-435808b6a8a8" />
+
 - Add Shift page
-- Auth page
+  <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/fc3bbd7b-743e-408f-b25a-edb4f4f729f1" />
+
+-Auth Page
+<img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/627a7509-966f-4a78-92d3-76a33a45acd0" />
+
+-Setting Page
+
+-Shifts Page
+<img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/2af1e6d9-4d1e-45a3-9c91-e6989babe11a" />
 
 ---
 
