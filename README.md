@@ -56,10 +56,10 @@ The application provides a clear financial overview in a centralized dashboard, 
 ## 📸 Preview
 
 - Dashboard
-  <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/8e909410-fded-44af-a2c6-435808b6a8a8" />
+<img width="1512" height="898" alt="image" src="https://github.com/user-attachments/assets/4c024f99-b7ec-4876-8b14-08d2c828b622" />
 
 - Add Shift page
-  <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/fc3bbd7b-743e-408f-b25a-edb4f4f729f1" />
+<img width="1512" height="896" alt="image" src="https://github.com/user-attachments/assets/81537d47-0d4d-445e-a969-a70b286b02d8" />
 
 -Auth Page
 <img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/627a7509-966f-4a78-92d3-76a33a45acd0" />
@@ -68,7 +68,7 @@ The application provides a clear financial overview in a centralized dashboard, 
 <img width="958" height="863" alt="image" src="https://github.com/user-attachments/assets/45f31412-07fe-4d46-9d64-100b48f8102b" />
 
 -Shifts Page
-<img width="1512" height="982" alt="image" src="https://github.com/user-attachments/assets/2af1e6d9-4d1e-45a3-9c91-e6989babe11a" />
+<img width="1512" height="897" alt="image" src="https://github.com/user-attachments/assets/756b4576-9177-4c6c-b659-329c1fcd4487" />
 
 ---
 
