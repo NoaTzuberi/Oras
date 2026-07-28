@@ -8,7 +8,8 @@
   display: flex;
   flex-wrap: wrap;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 14px;
   text-align: center;
   aspect-ratio: 1 / 1;
   cursor: pointer;
@@ -117,7 +118,6 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1;
-  margin-top: -40px;
 }
 
 .shift-card__hours {
@@ -129,10 +129,6 @@
 @media (max-width: 480px) {
   .shift-card {
     width: 100%;
-  }
-
-  .shift-card__total {
-    margin-top: -32px;
   }
 }
 

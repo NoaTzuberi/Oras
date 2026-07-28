@@ -1,7 +1,7 @@
 .bottom-nav {
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  height: 70px;
+  height: calc(70px + env(safe-area-inset-bottom));
   background: rgba(255,255,255,0.65);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -10,8 +10,10 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
+  padding-bottom: env(safe-area-inset-bottom);
   z-index: 100;
   direction: ltr;
+  box-sizing: border-box;
 }
 
 .nav-item {
