@@ -7,6 +7,7 @@ import { HomePage } from './Pages/HomePage/HomePage'
 import { AddShiftPage } from './Pages/AddShiftPage/AddShiftPage'
 import { ShiftsPage } from './Pages/ShiftsPage/ShiftsPage'
 import { SettingsPage } from './Pages/SettingsPage/SettingsPage'
+import { DashboardPage } from './Pages/DashboardPage/DashboardPage'
 import { AuthPage } from './Pages/AuthPage/AuthPage'
 import { useAuth } from './context/AuthContext'
 
@@ -18,11 +19,23 @@ const AppRoutes = () => {
       <LiquidBackground />
       <Routes>
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
-        <Route path="/" element={<ProtectedRoute><ShiftsProvider><HomePage /></ShiftsProvider></ProtectedRoute>} />
-        <Route path="/add" element={<ProtectedRoute><ShiftsProvider><AddShiftPage /></ShiftsProvider></ProtectedRoute>} />
-        <Route path="/shifts" element={<ProtectedRoute><ShiftsProvider><ShiftsPage /></ShiftsProvider></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><ShiftsProvider><SettingsPage /></ShiftsProvider></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="/*"
+          element={
+            <ProtectedRoute>
+              <ShiftsProvider>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/add" element={<AddShiftPage />} />
+                  <Route path="/shifts" element={<ShiftsPage />} />
+                  <Route path="/dashboard" element={<DashboardPage />} />
+                  <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </ShiftsProvider>
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </>
   )

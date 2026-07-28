@@ -103,8 +103,7 @@
   transition: border-color 150ms var(--ease-out), background 150ms var(--ease-out);
   width: 100%;
   box-sizing: border-box;
-  direction: rtl;
-  text-align: right;
+  text-align: start;
 }
 
 .auth-input:focus {

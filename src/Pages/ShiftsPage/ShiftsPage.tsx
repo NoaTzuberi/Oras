@@ -3,9 +3,11 @@ import { BottomNavBar } from '../../components/BottomNavBar/BottomNavBar'
 import { TopNavBar } from '../../components/TopNavBar/TopNavBar'
 import './ShiftsPage.css'
 import { useShifts } from '../../context/ShiftContext'
-import { t } from 'i18next'
+import { useTranslation } from 'react-i18next'
+import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 
 export const ShiftsPage = () => {
+const { t } = useTranslation()
 const {
   filteredShifts,
   taxInfo,
@@ -31,11 +33,7 @@ const goToNextMonth = () => {
   newDate.setMonth(newDate.getMonth() + 1)
   setSelectedMonth(newDate)
 }
-const monthNames = [
-  'ינואר', 'פברואר', 'מרץ', 'אפריל',
-  'מאי', 'יוני', 'יולי', 'אוגוסט',
-  'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
-]
+const monthNames = t('ShiftsPage.months', { returnObjects: true }) as string[]
 
 const monthLabel = `${
   monthNames[selectedMonth.getMonth()]
@@ -48,13 +46,17 @@ const monthLabel = `${
     
 
         <div className="month-nav">
-          <button onClick={goToPrevMonth}>⬅️</button>
+          <button className="month-nav__btn" onClick={goToPrevMonth} aria-label="previous month">
+            <FiChevronLeft />
+          </button>
 
           <div className="month-title">
             {monthLabel}
           </div>
 
-          <button onClick={goToNextMonth}>➡️</button>
+          <button className="month-nav__btn" onClick={goToNextMonth} aria-label="next month">
+            <FiChevronRight />
+          </button>
         </div>
 
         {/* Summary bar */}
@@ -77,7 +79,7 @@ const monthLabel = `${
                   : '—'}
               </span>
               {!isProfileComplete && (
-                <span className="shifts-summary__hint">מלא פרופיל</span>
+                <span className="shifts-summary__hint">{t('ShiftsPage.completeProfileHint')}</span>
               )}
             </div>
 
@@ -102,8 +104,8 @@ const monthLabel = `${
         {/* Grid */}
         {filteredShifts.length === 0 ? (
           <div className="shifts-empty">
-            <p>אין משמרות עדיין</p>
-            <span>הוסף משמרת עם כפתור ה-+</span>
+            <p>{t('ShiftsPage.emptyTitle')}</p>
+            <span>{t('ShiftsPage.emptySubtitle')}</span>
           </div>
         ) : (
           <div className="shifts-grid">

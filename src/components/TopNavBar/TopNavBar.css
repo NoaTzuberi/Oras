@@ -14,7 +14,6 @@
   top: 0;
   z-index: 100;
   box-sizing: border-box;
-  direction: ltr;
 }
 
 .top-navbar__left {

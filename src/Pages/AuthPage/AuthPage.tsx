@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
 import './AuthPage.css'
 
 export const AuthPage = () => {
   const { signIn, signUp } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [email, setEmail] = useState('')
@@ -24,12 +26,12 @@ export const AuthPage = () => {
     setSuccessMsg('')
 
     if (!email || !password) {
-      setError('נא למלא אימייל וסיסמה')
+      setError(t('auth.errorFillFields'))
       return
     }
 
     if (password.length < 6) {
-      setError('הסיסמה חייבת להיות לפחות 6 תווים')
+      setError(t('auth.errorPasswordShort'))
       return
     }
 
@@ -39,14 +41,14 @@ export const AuthPage = () => {
       const { error } = await signIn(email, password)
 
       if (error) {
-        setError('אימייל או סיסמה שגויים')
+        setError(t('auth.errorInvalidCredentials'))
       } else {
         navigate('/')
       }
     } else {
       // ✨ validate name fields only in signup
       if (!firstName || !lastName) {
-        setError('נא למלא שם פרטי ושם משפחה')
+        setError(t('auth.errorFillNames'))
         setLoading(false)
         return
       }
@@ -54,9 +56,9 @@ export const AuthPage = () => {
       const { error } = await signUp(email, password, firstName, lastName)
 
       if (error) {
-        setError('שגיאה בהרשמה, נסה שוב')
+        setError(t('auth.errorSignup'))
       } else {
-        setSuccessMsg('נשלח אימייל אימות! בדוק תיבת דואר')
+        setSuccessMsg(t('auth.successVerification'))
       }
     }
 
@@ -73,19 +75,19 @@ export const AuthPage = () => {
         </div>
 
         <h1 className="auth-title">
-          {mode === 'login' ? 'ברוך הבא ל Oras 👋' : 'צור חשבון חדש'}
+          {mode === 'login' ? t('auth.welcomeBack') : t('auth.createAccount')}
         </h1>
 
         <p className="auth-subtitle">
           {mode === 'login'
-            ? 'התחבר לחשבון שלך'
-            : 'הצטרף ועקוב אחרי המשמרות שלך'}
+            ? t('auth.loginSubtitle')
+            : t('auth.signupSubtitle')}
         </p>
 
         <div className="auth-fields">
 
           <div className="auth-field">
-            <label className="auth-label">אימייל</label>
+            <label className="auth-label">{t('auth.email')}</label>
             <input
               type="email"
               className="auth-input"
@@ -97,11 +99,11 @@ export const AuthPage = () => {
           </div>
 
           <div className="auth-field">
-            <label className="auth-label">סיסמה</label>
+            <label className="auth-label">{t('auth.password')}</label>
             <input
               type="password"
               className="auth-input"
-              placeholder="לפחות 6 תווים"
+              placeholder={t('auth.passwordPlaceholder') ?? ''}
               value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}
@@ -112,22 +114,22 @@ export const AuthPage = () => {
           {mode === 'signup' && (
             <>
               <div className="auth-field">
-                <label className="auth-label">שם פרטי</label>
+                <label className="auth-label">{t('auth.firstName')}</label>
                 <input
                   type="text"
                   className="auth-input"
-                  placeholder="שם פרטי"
+                  placeholder={t('auth.firstName') ?? ''}
                   value={firstName}
                   onChange={e => setFirstName(e.target.value)}
                 />
               </div>
 
               <div className="auth-field">
-                <label className="auth-label">שם משפחה</label>
+                <label className="auth-label">{t('auth.lastName')}</label>
                 <input
                   type="text"
                   className="auth-input"
-                  placeholder="שם משפחה"
+                  placeholder={t('auth.lastName') ?? ''}
                   value={lastName}
                   onChange={e => setLastName(e.target.value)}
                 />
@@ -146,10 +148,10 @@ export const AuthPage = () => {
           disabled={loading}
         >
           {loading
-            ? '...'
+            ? t('auth.loading')
             : mode === 'login'
-              ? 'התחבר'
-              : 'הירשם'}
+              ? t('auth.login')
+              : t('auth.signup')}
         </button>
 
         <button
@@ -161,8 +163,8 @@ export const AuthPage = () => {
           }}
         >
           {mode === 'login'
-            ? 'אין לך חשבון? הירשם'
-            : 'כבר יש לך חשבון? התחבר'}
+            ? t('auth.noAccount')
+            : t('auth.haveAccount')}
         </button>
 
       </div>

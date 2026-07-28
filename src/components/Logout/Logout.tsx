@@ -1,11 +1,12 @@
 import { useAuth } from '../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import './Logout.css'
-import { t } from 'i18next'
+import { useTranslation } from 'react-i18next'
 
 export const LogoutButton = () => {
   const { signOut } = useAuth()
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const handleLogout = async () => {
     await signOut()

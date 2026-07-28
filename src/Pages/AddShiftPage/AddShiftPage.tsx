@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { BottomNavBar } from '../../components/BottomNavBar/BottomNavBar'
 import './AddShiftPage.css'
 import { useShifts } from '../../context/ShiftContext'
@@ -49,6 +50,7 @@ const calcHours = (start: string, end: string) => {
 
 export const AddShiftPage = () => {
   const navigate = useNavigate()
+  const { t } = useTranslation()
 const { addShift } = useShifts()
 
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0])
@@ -96,9 +98,9 @@ const { addShift } = useShifts()
   }, [date])
 
   const handleSubmit = async () => {
-  if (!startTime || !endTime) return alert('Please enter shift times')
-  if (salaryType === 'hourly' && !hourlyRate) return alert('Please enter hourly rate')
-  if (salaryType === 'total' && !totalSalary) return alert('Please enter total salary')
+  if (!startTime || !endTime) return alert(t('shiftForm.alertEnterTimes'))
+  if (salaryType === 'hourly' && !hourlyRate) return alert(t('shiftForm.alertEnterHourlyRate'))
+  if (salaryType === 'total' && !totalSalary) return alert(t('shiftForm.alertEnterTotalSalary'))
 
   await addShift({
     date,
@@ -123,13 +125,13 @@ const { addShift } = useShifts()
       <div className="add-shift-card">
         <div className="card-header">
           <button className="back-btn" onClick={() => navigate(-1)}>←</button>
-          <h1>הוסף משמרת</h1>
+          <h1>{t('shift.addShift')}</h1>
           <div />
         </div>
 
         <div className="card-body">
           <div className="form-section">
-            <label className="form-label">תאריך</label>
+            <label className="form-label">{t('shiftForm.date')}</label>
             <input
               type="date"
               className="form-input"
@@ -139,47 +141,47 @@ const { addShift } = useShifts()
                 e.target.blur()
               }}
             />
-            {loading && <p className="hint">Checking date...</p>}
+            {loading && <p className="hint">{t('shiftForm.checkingDate')}</p>}
             {!loading && specialDay.isSpecial && (
-              <div className="special-day-badge">✡️ {specialDay.reason ?? ''} — Shabbat or holiday</div>
+              <div className="special-day-badge">✡️ {specialDay.reason ?? ''} — {t('shiftForm.holidaySuffix')}</div>
             )}
           </div>
 
           <div className="form-section">
-            <label className="form-label">שעות המשמרת</label>
+            <label className="form-label">{t('shiftForm.shiftHoursLabel')}</label>
             <div className="time-row">
               <div className="time-block">
-                <span className="time-label">התחלה</span>
-                <input type="time" className="form-input" 
-                value={startTime} 
+                <span className="time-label">{t('shiftForm.start')}</span>
+                <input type="time" className="form-input"
+                value={startTime}
                 step="60"
                 inputMode='numeric'
                 onChange={e => setStartTime(e.target.value)} />
               </div>
               <div className="time-divider">→</div>
               <div className="time-block">
-                <span className="time-label">סוף</span>
-                <input type="time" className="form-input" value={endTime} 
+                <span className="time-label">{t('shiftForm.end')}</span>
+                <input type="time" className="form-input" value={endTime}
                 step="60"
                 inputMode='numeric'
                 onChange={e => setEndTime(e.target.value)} />
               </div>
             </div>
-            {hours > 0 && <p className="hours-summary">{hours} שעות עבודה</p>}
+            {hours > 0 && <p className="hours-summary">{t('shiftForm.hoursWorked', { hours })}</p>}
           </div>
 
           <div className="form-section">
-            <label className="form-label">שכר</label>
+            <label className="form-label">{t('shiftForm.salary')}</label>
             <div className="toggle-row">
-              <button className={`toggle-btn ${salaryType === 'hourly' ? 'toggle-btn--active' : ''}`} onClick={() => setSalaryType('hourly')}>לפי שעה</button>
-              <button className={`toggle-btn ${salaryType === 'total' ? 'toggle-btn--active' : ''}`} onClick={() => setSalaryType('total')}>סה״כ יומי</button>
+              <button className={`toggle-btn ${salaryType === 'hourly' ? 'toggle-btn--active' : ''}`} onClick={() => setSalaryType('hourly')}>{t('shiftForm.hourly')}</button>
+              <button className={`toggle-btn ${salaryType === 'total' ? 'toggle-btn--active' : ''}`} onClick={() => setSalaryType('total')}>{t('shiftForm.dailyTotal')}</button>
             </div>
 
             {salaryType === 'hourly' && (
               <div className="input-with-symbol">
                 <span className="symbol">₪</span>
                 <input type="number" className="form-input" placeholder="e.g. 55" value={hourlyRate} onChange={e => setHourlyRate(e.target.value)} />
-                <span className="per-label">/ hr</span>
+                <span className="per-label">{t('shiftForm.perHour')}</span>
               </div>
             )}
 
@@ -196,43 +198,43 @@ const { addShift } = useShifts()
                   <span>💡 {specialDay.reason}</span>
                   <span className="suggestion-rate">{(parseFloat(hourlyRate) * 1.5).toFixed(2)}/hr</span>
                 </div>
-                <p className="suggestion-sub">Apply only if your employer pays holiday rate.</p>
+                <p className="suggestion-sub">{t('shiftForm.applyOnlyIfEmployerPays')}</p>
                 <button
                   className={`apply-150-btn ${use150 ? 'apply-150-btn--active' : ''}`}
                   onClick={() => setUse150(p => !p)}
                 >
-                  {use150 ? '✓ 150% Applied' : 'Apply 150% Rate'}
+                  {use150 ? t('shiftForm.apply150Active') : t('shiftForm.apply150')}
                 </button>
               </div>
             )}
 
             {calculatedSalary !== null && (
               <div className="calc-result">
-                <span className="calc-label">שכר בסיס</span>
+                <span className="calc-label">{t('shiftForm.baseSalary')}</span>
                 <span className="calc-value">₪{calculatedSalary}</span>
               </div>
             )}
           </div>
 
           <div className="form-section">
-            <label className="form-label">טיפ <span className="optional">אופציונלי</span></label>
+            <label className="form-label">{t('shiftForm.tip')} <span className="optional">{t('shiftForm.optional')}</span></label>
             <div className="input-with-symbol">
               <span className="symbol">₪</span>
-              <input type="number" className="form-input" placeholder="סה״כ טיפים" value={tips} onChange={e => setTips(e.target.value)} />
+              <input type="number" className="form-input" placeholder={t('shiftForm.tipsPlaceholder') ?? ''} value={tips} onChange={e => setTips(e.target.value)} />
             </div>
           </div>
 
           {totalWithTips !== null && (
             <div className="total-summary">
-              <span className="total-label">סה״כ הכנסה</span>
+              <span className="total-label">{t('shiftForm.totalIncome')}</span>
               <span className="total-value">₪{totalWithTips}</span>
               {parseFloat(tips) > 0 && (
-                <span className="total-breakdown">₪{calculatedSalary} salary + ₪{tips} tips</span>
+                <span className="total-breakdown">{t('shiftForm.breakdown', { salary: calculatedSalary, tips })}</span>
               )}
             </div>
           )}
 
-          <button className="submit-btn" onClick={handleSubmit}>שמור משמרת</button>
+          <button className="submit-btn" onClick={handleSubmit}>{t('shiftForm.saveShift')}</button>
         </div>
       </div>
       <BottomNavBar />

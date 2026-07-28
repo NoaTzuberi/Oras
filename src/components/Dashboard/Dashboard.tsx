@@ -106,7 +106,7 @@ const averageHourlyRate =
   </p>
 
   <span className="card-subtitle">
-    Average hourly earnings
+    {t("dashboard.AverageSubtitle")}
   </span>
 </div>
 

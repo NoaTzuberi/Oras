@@ -2,7 +2,6 @@
   min-height: 100vh;
   position: relative;
   z-index: 2;
-  direction: rtl;
 }
 
 .shifts-content {
@@ -128,7 +127,8 @@
 .shifts-empty span {
   font-family: 'DM Sans', sans-serif;
   font-size: 13px;
-  color: #a5a8c8;
+  font-weight: 500;
+  color: #6b6f99;
 }
 
 .month-nav {
@@ -145,11 +145,10 @@
   border-radius: 18px;
   box-shadow: 0 4px 20px rgba(90,100,200,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
   animation: titleIn 300ms var(--ease-out) forwards;
-  direction: ltr;
 
 }
 
-.month-nav button {
+.month-nav__btn {
   width: 34px;
   height: 34px;
   border: none;
@@ -159,25 +158,30 @@
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   color: white;
 
-  font-size: 14px;
-  font-weight: 700;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
 
   box-shadow: 0 4px 10px rgba(79,70,229,0.25);
 
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.month-nav button:hover {
+.month-nav__btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+html[dir="rtl"] .month-nav__btn svg {
+  transform: scaleX(-1);
+}
+
+.month-nav__btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 14px rgba(79,70,229,0.35);
 }
 
-.month-nav button:active {
+.month-nav__btn:active {
   transform: translateY(0px);
   box-shadow: 0 3px 8px rgba(79,70,229,0.2);
 }

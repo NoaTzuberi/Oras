@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { BottomNavBar } from '../../components/BottomNavBar/BottomNavBar'
 import { TopNavBar } from '../../components/TopNavBar/TopNavBar'
 import './SettingsPage.css'
 import { calcCreditPoints, useShifts, type UserProfile } from '../../context/ShiftContext'
 
 export const SettingsPage = () => {
+  const { t } = useTranslation()
   const { userProfile, setUserProfile } = useShifts()
 
   const [form, setForm] = useState<UserProfile>(userProfile)
@@ -35,18 +37,18 @@ export const SettingsPage = () => {
     <div className="settings-page">
       <TopNavBar />
       <div className="settings-content">
-        <h2 className="settings-title">הגדרות</h2>
-        <p className="settings-subtitle">מלא את הפרטים כדי לחשב את נקודות הזיכוי שלך</p>
+        <h2 className="settings-title">{t('settings.title')}</h2>
+        <p className="settings-subtitle">{t('settings.subtitle')}</p>
 
         {/* Live preview */}
         {previewPoints > 0 && (
           <div className="credit-preview">
             <div className="credit-preview__row">
-              <span className="credit-preview__label">נקודות זיכוי</span>
+              <span className="credit-preview__label">{t('settings.creditPoints')}</span>
               <span className="credit-preview__value">{previewPoints}</span>
             </div>
             <div className="credit-preview__row">
-              <span className="credit-preview__label">הנחת מס חודשית</span>
+              <span className="credit-preview__label">{t('settings.monthlyTaxDiscount')}</span>
               <span className="credit-preview__value">₪{previewCredit}</span>
             </div>
           </div>
@@ -54,57 +56,57 @@ export const SettingsPage = () => {
 
         {/* Gender */}
         <div className="settings-section">
-          <label className="settings-label">מגדר</label>
+          <label className="settings-label">{t('settings.gender')}</label>
           <div className="toggle-row">
             <button
               className={`toggle-btn ${form.gender === 'male' ? 'toggle-btn--active' : ''}`}
               onClick={() => setForm(f => ({ ...f, gender: 'male' }))}
             >
-              גבר
+              {t('settings.male')}
             </button>
             <button
               className={`toggle-btn ${form.gender === 'female' ? 'toggle-btn--active' : ''}`}
               onClick={() => setForm(f => ({ ...f, gender: 'female' }))}
             >
-              אישה
+              {t('settings.female')}
             </button>
           </div>
           <p className="settings-hint">
-            {form.gender === 'male' ? '2.25 נקודות בסיס' : form.gender === 'female' ? '2.75 נקודות בסיס' : ''}
+            {form.gender === 'male' ? t('settings.basePointsMale') : form.gender === 'female' ? t('settings.basePointsFemale') : ''}
           </p>
         </div>
 
         {/* Children */}
         <div className="settings-section">
-          <label className="settings-label">ילדים</label>
+          <label className="settings-label">{t('settings.children')}</label>
           <div className="children-input-row">
             <input
               type="number"
               className="settings-input"
-              placeholder="גיל הילד"
+              placeholder={t('settings.childAgePlaceholder') ?? ''}
               value={childAgeInput}
               onChange={e => setChildAgeInput(e.target.value)}
               min={0}
               max={18}
             />
-            <button className="add-child-btn" onClick={addChild}>+ הוסף</button>
+            <button className="add-child-btn" onClick={addChild}>{t('settings.addChild')}</button>
           </div>
           {form.children.length > 0 && (
             <div className="children-list">
               {form.children.map((child, i) => (
                 <div key={i} className="child-tag">
-                  <span>גיל {child.age}</span>
+                  <span>{t('settings.age', { age: child.age })}</span>
                   <button onClick={() => removeChild(i)}>✕</button>
                 </div>
               ))}
             </div>
           )}
-          <p className="settings-hint">נקודות זיכוי לפי גיל הילד לפי חוק</p>
+          <p className="settings-hint">{t('settings.childrenHint')}</p>
         </div>
 
         {/* Military */}
         <div className="settings-section">
-          <label className="settings-label">חיילים משוחררים/ שירות לאומי</label>
+          <label className="settings-label">{t('settings.military')}</label>
           <div className="toggle-row">
             {[0, 1, 2, 3].map(y => (
               <button
@@ -112,23 +114,23 @@ export const SettingsPage = () => {
                 className={`toggle-btn ${form.militaryYears === y ? 'toggle-btn--active' : ''}`}
                 onClick={() => setForm(f => ({ ...f, militaryYears: y }))}
               >
-                {y === 0 ? 'ללא' : `${y}+`}
+                {y === 0 ? t('settings.none') : `${y}+`}
               </button>
             ))}
           </div>
           <p className="settings-hint">
-            {form.militaryYears >= 2 ? `+${form.militaryYears >= 3 ? '1.5' : '1'} נקודות` : ''}
+            {form.militaryYears >= 2 ? t('settings.militaryPointsHint', { points: form.militaryYears >= 3 ? '1.5' : '1' }) : ''}
           </p>
         </div>
 
         {/* Switches */}
         <div className="settings-section">
-          <label className="settings-label">פרטים נוספים</label>
+          <label className="settings-label">{t('settings.additionalDetails')}</label>
 
           <div className="switch-row" onClick={() => setForm(f => ({ ...f, isMoshavMember: !f.isMoshavMember }))}>
             <div className="switch-info">
-              <span className="switch-title">חבר מושב שיתופי / קיבוץ</span>
-              <span className="switch-hint">+1 נקודת זיכוי</span>
+              <span className="switch-title">{t('settings.moshavMember')}</span>
+              <span className="switch-hint">{t('settings.moshavHint')}</span>
             </div>
             <div className={`switch ${form.isMoshavMember ? 'switch--on' : ''}`}>
               <div className="switch__thumb" />
@@ -137,8 +139,8 @@ export const SettingsPage = () => {
 
           <div className="switch-row" onClick={() => setForm(f => ({ ...f, hasAcademicDegree: !f.hasAcademicDegree }))}>
             <div className="switch-info">
-              <span className="switch-title">תואר אקדמי</span>
-              <span className="switch-hint">+0.5 נקודת זיכוי</span>
+              <span className="switch-title">{t('settings.academicDegree')}</span>
+              <span className="switch-hint">{t('settings.academicHint')}</span>
             </div>
             <div className={`switch ${form.hasAcademicDegree ? 'switch--on' : ''}`}>
               <div className="switch__thumb" />
@@ -147,8 +149,8 @@ export const SettingsPage = () => {
 
           <div className="switch-row" onClick={() => setForm(f => ({ ...f, isPriorityArea: !f.isPriorityArea }))}>
             <div className="switch-info">
-              <span className="switch-title">אזור עדיפות לאומית</span>
-              <span className="switch-hint">+0.5 נקודת זיכוי</span>
+              <span className="switch-title">{t('settings.priorityArea')}</span>
+              <span className="switch-hint">{t('settings.priorityHint')}</span>
             </div>
             <div className={`switch ${form.isPriorityArea ? 'switch--on' : ''}`}>
               <div className="switch__thumb" />
@@ -157,8 +159,8 @@ export const SettingsPage = () => {
 
           <div className="switch-row" onClick={() => setForm(f => ({ ...f, isNewImmigrant: !f.isNewImmigrant }))}>
             <div className="switch-info">
-              <span className="switch-title">עולה חדש</span>
-              <span className="switch-hint">עד +3 נקודות לפי שנת עלייה</span>
+              <span className="switch-title">{t('settings.newImmigrant')}</span>
+              <span className="switch-hint">{t('settings.newImmigrantHint')}</span>
             </div>
             <div className={`switch ${form.isNewImmigrant ? 'switch--on' : ''}`}>
               <div className="switch__thumb" />
@@ -167,7 +169,7 @@ export const SettingsPage = () => {
 
           {form.isNewImmigrant && (
             <div className="immigration-year">
-              <label className="settings-label">שנת עלייה</label>
+              <label className="settings-label">{t('settings.immigrationYear')}</label>
               <input
                 type="number"
                 className="settings-input"
@@ -183,27 +185,27 @@ export const SettingsPage = () => {
 
         {/* Default hourly rate */}
         <div className="settings-section">
-          <label className="settings-label">שכר ברירת מחדל לשעה</label>
+          <label className="settings-label">{t('settings.defaultHourlyRate')}</label>
           <div className="input-with-symbol">
             <span className="symbol">₪</span>
             <input
               type="number"
               className="settings-input"
-              placeholder="לדוגמא 55"
+              placeholder="e.g. 55"
               value={form.defaultHourlyRate ?? ''}
               onChange={e => setForm(f => ({
                 ...f,
                 defaultHourlyRate: e.target.value ? parseFloat(e.target.value) : null
               }))}
             />
-            <span className="per-label">לשעה</span>
+            <span className="per-label">{t('settings.perHourSuffix')}</span>
           </div>
-          <p className="settings-hint">יוכנס אוטומטית בכל משמרת חדשה</p>
+          <p className="settings-hint">{t('settings.defaultHourlyRateHint')}</p>
         </div>
 
         {/* Save button */}
         <button className={`save-btn ${saved ? 'save-btn--saved' : ''}`} onClick={handleSave}>
-          {saved ? '✓ נשמר!' : 'שמור הגדרות'}
+          {saved ? t('settings.saved') : t('settings.save')}
         </button>
 
       </div>

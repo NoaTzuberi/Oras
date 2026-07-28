@@ -2,7 +2,6 @@
   min-height: 100vh;
   position: relative;
   z-index: 2;
-  direction: rtl;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;

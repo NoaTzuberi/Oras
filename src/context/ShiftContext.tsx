@@ -40,6 +40,7 @@ export type TaxInfo = {
 type ShiftsContextType = {
   shifts: Shift[]
   addShift: (shift: Omit<Shift, 'id'>) => Promise<void>
+  updateShift: (id: string, shift: Omit<Shift, 'id'>) => Promise<void>
   deleteShift: (id: string) => Promise<void>
   userProfile: UserProfile
   setUserProfile: (profile: UserProfile) => Promise<void>
@@ -138,13 +139,7 @@ export const calcTaxInfo = (profile: UserProfile, shifts: Shift[]): TaxInfo => {
   const creditPoints = calcCreditPoints(profile)
   const monthlyTaxCredit = parseFloat((creditPoints * CREDIT_POINT_MONTHLY).toFixed(2))
 
-  const now = new Date()
-  const thisMonth = shifts.filter(s => {
-    const d = new Date(s.date)
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
-  })
-
-  const grossSalary = parseFloat(thisMonth.reduce((sum, s) => sum + s.totalEarnings, 0).toFixed(2))
+  const grossSalary = parseFloat(shifts.reduce((sum, s) => sum + s.totalEarnings, 0).toFixed(2))
   const incomeTax = calcIncomeTax(grossSalary, creditPoints)
   const nationalInsurance = calcNationalInsurance(grossSalary)
   const healthInsurance = calcHealthInsurance(grossSalary)
@@ -277,7 +272,46 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
     }
   }
 
-  
+  const updateShift = async (id: string, shift: Omit<Shift, 'id'>) => {
+  const { data, error } = await supabase
+    .from('shifts')
+    .update({
+      date: shift.date,
+      start_time: shift.startTime,
+      end_time: shift.endTime,
+      hours: shift.hours,
+      salary_type: shift.salaryType,
+      base_salary: shift.baseSalary,
+      tips: shift.tips,
+      total_earnings: shift.totalEarnings,
+      is_shabbat_or_holiday: shift.isShabbatOrHoliday,
+      used_150: shift.used150,
+    })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating shift:', error)
+    return
+  }
+
+  if (data) {
+    setShifts(prev => prev.map(s => s.id === id ? {
+      id: data.id,
+      date: data.date,
+      startTime: data.start_time,
+      endTime: data.end_time,
+      hours: data.hours,
+      salaryType: data.salary_type,
+      baseSalary: data.base_salary,
+      tips: data.tips,
+      totalEarnings: data.total_earnings,
+      isShabbatOrHoliday: data.is_shabbat_or_holiday,
+      used150: data.used_150,
+    } : s))
+  }
+}
 
   const deleteShift = async (id: string) => {
     const { error } = await supabase
@@ -338,6 +372,7 @@ const filteredShifts = shifts.filter(shift => {
 
       addShift,
       deleteShift,
+      updateShift,
 
       userProfile,
       setUserProfile,
