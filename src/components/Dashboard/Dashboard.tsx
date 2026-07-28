@@ -26,7 +26,9 @@ const averageHourlyRate =
 
   return (
     <div className="dashboard">
-
+        <div>
+          <p>😁</p>
+        </div>
       {/* Notice */}
       {!isProfileComplete && (
         <div className="dashboard-notice">
