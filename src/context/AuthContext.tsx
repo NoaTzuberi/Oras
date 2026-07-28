@@ -14,6 +14,8 @@ type AuthContextType = {
   ) => Promise<{ error: any }>
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
+  resetPasswordForEmail: (email: string) => Promise<{ error: any }>
+  updatePassword: (newPassword: string) => Promise<{ error: any }>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -78,6 +80,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut()
   }
 
+  // ✉️ שליחת קישור לאיפוס סיסמה
+  const resetPasswordForEmail = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`
+    })
+
+    return { error }
+  }
+
+  // 🔒 עדכון סיסמה חדשה (בזמן recovery session)
+  const updatePassword = async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+
+    return { error }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -86,7 +104,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         loading,
         signUp,
         signIn,
-        signOut
+        signOut,
+        resetPasswordForEmail,
+        updatePassword
       }}
     >
       {children}

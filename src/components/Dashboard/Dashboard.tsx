@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useShifts } from '../../context/ShiftContext'
 import { useTranslation } from "react-i18next"
+import { FitText } from '../FitText/FitText'
 import './Dashboard.css'
 
 export const Dashboard = () => {
@@ -58,7 +59,7 @@ const averageHourlyRate =
         <div className="card card--gross">
           <div className="card-icon">💼</div>
           <h3>{t("dashboard.grossTitle")}</h3>
-          <p>₪{taxInfo.grossSalary.toLocaleString()}</p>
+          <FitText className="card-value">₪{taxInfo.grossSalary.toLocaleString()}</FitText>
           <span className="card-subtitle">
             {t("dashboard.grossSubtitle")}
           </span>
@@ -68,7 +69,7 @@ const averageHourlyRate =
         <div className="card card--net">
           <div className="card-icon">✦</div>
           <h3>{t("dashboard.netTitle")}</h3>
-          <p>₪{taxInfo.netSalary.toLocaleString()}</p>
+          <FitText className="card-value">₪{taxInfo.netSalary.toLocaleString()}</FitText>
           <span className="card-subtitle">
             {t("dashboard.netSubtitle")}
           </span>
@@ -78,7 +79,7 @@ const averageHourlyRate =
         <div className="card card--hours">
           <div className="card-icon">⏱</div>
           <h3>{t("dashboard.creditsTitle")}</h3>
-          <p>{taxInfo.creditPoints}</p>
+          <FitText className="card-value">{taxInfo.creditPoints}</FitText>
           <span className="card-subtitle">
             {t("dashboard.creditsSubtitle", {
               value: taxInfo.monthlyTaxCredit
@@ -90,7 +91,7 @@ const averageHourlyRate =
         <div className="card card--rate">
           <div className="card-icon">📊</div>
           <h3>{t("dashboard.deductionsTitle")}</h3>
-          <p>₪{totalDeductions.toLocaleString()}</p>
+          <FitText className="card-value">₪{totalDeductions.toLocaleString()}</FitText>
           <span className="card-subtitle">
             {t("dashboard.deductionsSubtitle")}
           </span>
@@ -101,9 +102,9 @@ const averageHourlyRate =
 
   <h3>{t("dashboard.AverageTitle")}</h3>
 
-  <p>
+  <FitText className="card-value">
     ₪{averageHourlyRate.toFixed(2)}
-  </p>
+  </FitText>
 
   <span className="card-subtitle">
     {t("dashboard.AverageSubtitle")}

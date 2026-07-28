@@ -4,8 +4,7 @@
 
   padding: 6px 10px;
   border-radius: 999px;
-  height: 40px;
-  margin-top: 30px;
+  height: 34px;
 
   background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(16px);
@@ -21,15 +20,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  white-space: nowrap;
 
-  transition: all 200ms ease;
+  transition: transform 160ms var(--ease-out), box-shadow 160ms var(--ease-out);
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.12);
 }
 
-/* hover */
-.lang-toggle:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.18);
+@media (hover: hover) and (pointer: fine) {
+  .lang-toggle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.18);
+  }
 }
 
 /* active click */

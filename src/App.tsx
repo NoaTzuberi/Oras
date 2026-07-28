@@ -9,6 +9,7 @@ import { ShiftsPage } from './Pages/ShiftsPage/ShiftsPage'
 import { SettingsPage } from './Pages/SettingsPage/SettingsPage'
 import { DashboardPage } from './Pages/DashboardPage/DashboardPage'
 import { AuthPage } from './Pages/AuthPage/AuthPage'
+import { ResetPasswordPage } from './Pages/ResetPasswordPage/ResetPasswordPage'
 import { useAuth } from './context/AuthContext'
 
 const AppRoutes = () => {
@@ -19,6 +20,7 @@ const AppRoutes = () => {
       <LiquidBackground />
       <Routes>
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route
           path="/*"
           element={

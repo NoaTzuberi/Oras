@@ -21,9 +21,23 @@
   box-shadow: 0 4px 20px rgba(90,100,200,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
   opacity: 0;
   animation: cardIn 350ms var(--ease-out) forwards;
-margin: 0 auto 40px;
-  width: 500px;
+  margin: 0 auto 40px;
+  width: 100%;
+  max-width: 500px;
+  box-sizing: border-box;
+}
 
+@media (max-width: 480px) {
+  .dashboard-notice {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .dashboard-notice__right {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 
 .dashboard-notice__right {
@@ -103,6 +117,8 @@ margin: 0 auto 40px;
   position: relative;
   overflow: hidden;
   width: 300px;
+  max-width: 100%;
+  box-sizing: border-box;
   text-align: center;
   cursor: pointer;
   transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
@@ -160,7 +176,7 @@ margin: 0 auto 40px;
   margin: 0 0 12px;
 }
 
-.card p {
+.card-value {
   font-family: 'Syne', sans-serif;
   font-size: 42px;
   font-weight: 700;
@@ -170,6 +186,7 @@ margin: 0 auto 40px;
   background-clip: text;
   margin: 0 0 8px;
   line-height: 1;
+  max-width: 100%;
 }
 
 .card-subtitle {
@@ -177,4 +194,15 @@ margin: 0 auto 40px;
   font-size: 12px;
   color: #a5a8c8;
   font-weight: 300;
+}
+
+@media (max-width: 480px) {
+  .card {
+    width: 100%;
+    padding: 24px 20px;
+  }
+
+  .card-value {
+    font-size: 34px;
+  }
 }

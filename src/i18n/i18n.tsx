@@ -70,7 +70,24 @@ const resources = {
         errorInvalidCredentials: "אימייל או סיסמה שגויים",
         errorFillNames: "נא למלא שם פרטי ושם משפחה",
         errorSignup: "שגיאה בהרשמה, נסה שוב",
-        successVerification: "נשלח אימייל אימות! בדוק תיבת דואר"
+        successVerification: "נשלח אימייל אימות! בדוק תיבת דואר",
+
+        forgotPassword: "שכחת סיסמה?",
+        forgotTitle: "איפוס סיסמה",
+        forgotSubtitle: "הזן את האימייל שלך ונשלח לך קישור לאיפוס",
+        sendResetLink: "שלח קישור לאיפוס",
+        backToLogin: "חזרה להתחברות",
+        errorFillEmail: "נא למלא כתובת אימייל",
+        errorResetFailed: "שגיאה בשליחת הקישור, נסה שוב",
+        successResetSent: "קישור לאיפוס סיסמה נשלח! בדוק את תיבת הדואר שלך",
+
+        resetTitle: "בחר סיסמה חדשה",
+        resetSubtitle: "בחר סיסמה חדשה לחשבון שלך",
+        newPassword: "סיסמה חדשה",
+        confirmPassword: "אימות סיסמה",
+        errorPasswordsMismatch: "הסיסמאות אינן תואמות",
+        successPasswordUpdated: "הסיסמה עודכנה בהצלחה! מעביר אותך פנימה...",
+        updatePassword: "עדכן סיסמה"
       },
 
       shiftForm: {
@@ -169,6 +186,23 @@ const resources = {
           "מאי", "יוני", "יולי", "אוגוסט",
           "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"
         ]
+      },
+
+      stats: {
+        title: "סטטיסטיקה",
+        headerSubtitle: "המשמרות וההכנסות שלך לאורך זמן",
+        hoursTitle: "שעות עבודה",
+        hoursSubtitle: "סה״כ שעות ב-6 החודשים האחרונים",
+        hoursUnit: " ש",
+        rateTitle: "שכר שעתי ממוצע",
+        rateSubtitle: "ממוצע ₪ לשעה ב-6 החודשים האחרונים",
+        noDataTitle: "אין עדיין נתונים",
+        noDataSubtitle: "הוסף משמרות כדי לראות סטטיסטיקה",
+        monthsShort: [
+          "ינו", "פבר", "מרץ", "אפר",
+          "מאי", "יונ", "יול", "אוג",
+          "ספט", "אוק", "נוב", "דצמ"
+        ]
       }
     }
   },
@@ -243,7 +277,24 @@ const resources = {
         errorInvalidCredentials: "Incorrect email or password",
         errorFillNames: "Please fill in first and last name",
         errorSignup: "Signup error, please try again",
-        successVerification: "Verification email sent! Check your inbox"
+        successVerification: "Verification email sent! Check your inbox",
+
+        forgotPassword: "Forgot password?",
+        forgotTitle: "Reset password",
+        forgotSubtitle: "Enter your email and we'll send you a reset link",
+        sendResetLink: "Send reset link",
+        backToLogin: "Back to login",
+        errorFillEmail: "Please fill in your email",
+        errorResetFailed: "Failed to send reset link, please try again",
+        successResetSent: "Reset link sent! Check your inbox",
+
+        resetTitle: "Choose a new password",
+        resetSubtitle: "Set a new password for your account",
+        newPassword: "New password",
+        confirmPassword: "Confirm password",
+        errorPasswordsMismatch: "Passwords do not match",
+        successPasswordUpdated: "Password updated! Redirecting you...",
+        updatePassword: "Update password"
       },
 
       shiftForm: {
@@ -341,6 +392,23 @@ const resources = {
           "January", "February", "March", "April",
           "May", "June", "July", "August",
           "September", "October", "November", "December"
+        ]
+      },
+
+      stats: {
+        title: "Statistics",
+        headerSubtitle: "Your work and earnings, over time",
+        hoursTitle: "Hours Worked",
+        hoursSubtitle: "Total hours over the last 6 months",
+        hoursUnit: " hrs",
+        rateTitle: "Average Hourly Rate",
+        rateSubtitle: "Average ₪/hr over the last 6 months",
+        noDataTitle: "No data yet",
+        noDataSubtitle: "Add shifts to see your statistics",
+        monthsShort: [
+          "Jan", "Feb", "Mar", "Apr",
+          "May", "Jun", "Jul", "Aug",
+          "Sep", "Oct", "Nov", "Dec"
         ]
       }
     }

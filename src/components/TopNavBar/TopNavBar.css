@@ -1,6 +1,6 @@
 .top-navbar {
   width: 100%;
-  height: 100px;
+  height: 76px;
   background: rgba(255,255,255,0.65);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -39,10 +39,14 @@
 
 .top-navbar__right{
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
 }
 
 .top-navbar__logo {
-width: 100px;
+  width: 84px;
+  height: 84px;
+  border-radius: 10px;
+  flex-shrink: 0;
 }

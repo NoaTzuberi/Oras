@@ -5,11 +5,11 @@ import { useAuth } from '../../context/AuthContext'
 import './AuthPage.css'
 
 export const AuthPage = () => {
-  const { signIn, signUp } = useAuth()
+  const { signIn, signUp, resetPasswordForEmail } = useAuth()
   const navigate = useNavigate()
   const { t } = useTranslation()
 
-  const [mode, setMode] = useState<'login' | 'signup'>('login')
+  const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
@@ -65,6 +65,28 @@ export const AuthPage = () => {
     setLoading(false)
   }
 
+  const handleForgotPassword = async () => {
+    setError('')
+    setSuccessMsg('')
+
+    if (!email) {
+      setError(t('auth.errorFillEmail'))
+      return
+    }
+
+    setLoading(true)
+
+    const { error } = await resetPasswordForEmail(email)
+
+    if (error) {
+      setError(t('auth.errorResetFailed'))
+    } else {
+      setSuccessMsg(t('auth.successResetSent'))
+    }
+
+    setLoading(false)
+  }
+
   return (
     <div className="auth-page">
       <div className="auth-card">
@@ -75,13 +97,19 @@ export const AuthPage = () => {
         </div>
 
         <h1 className="auth-title">
-          {mode === 'login' ? t('auth.welcomeBack') : t('auth.createAccount')}
+          {mode === 'login'
+            ? t('auth.welcomeBack')
+            : mode === 'signup'
+              ? t('auth.createAccount')
+              : t('auth.forgotTitle')}
         </h1>
 
         <p className="auth-subtitle">
           {mode === 'login'
             ? t('auth.loginSubtitle')
-            : t('auth.signupSubtitle')}
+            : mode === 'signup'
+              ? t('auth.signupSubtitle')
+              : t('auth.forgotSubtitle')}
         </p>
 
         <div className="auth-fields">
@@ -94,21 +122,37 @@ export const AuthPage = () => {
               placeholder="you@example.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+              onKeyDown={e => e.key === 'Enter' && (mode === 'forgot' ? handleForgotPassword() : handleSubmit())}
             />
           </div>
 
-          <div className="auth-field">
-            <label className="auth-label">{t('auth.password')}</label>
-            <input
-              type="password"
-              className="auth-input"
-              placeholder={t('auth.passwordPlaceholder') ?? ''}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-            />
-          </div>
+          {mode !== 'forgot' && (
+            <div className="auth-field">
+              <label className="auth-label">{t('auth.password')}</label>
+              <input
+                type="password"
+                className="auth-input"
+                placeholder={t('auth.passwordPlaceholder') ?? ''}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+              />
+            </div>
+          )}
+
+          {mode === 'login' && (
+            <button
+              type="button"
+              className="auth-forgot-link"
+              onClick={() => {
+                setMode('forgot')
+                setError('')
+                setSuccessMsg('')
+              }}
+            >
+              {t('auth.forgotPassword')}
+            </button>
+          )}
 
           {/* ✨ NEW FIELDS ONLY IN SIGNUP */}
           {mode === 'signup' && (
@@ -144,14 +188,16 @@ export const AuthPage = () => {
 
         <button
           className="auth-btn"
-          onClick={handleSubmit}
+          onClick={mode === 'forgot' ? handleForgotPassword : handleSubmit}
           disabled={loading}
         >
           {loading
             ? t('auth.loading')
             : mode === 'login'
               ? t('auth.login')
-              : t('auth.signup')}
+              : mode === 'signup'
+                ? t('auth.signup')
+                : t('auth.sendResetLink')}
         </button>
 
         <button
@@ -164,7 +210,9 @@ export const AuthPage = () => {
         >
           {mode === 'login'
             ? t('auth.noAccount')
-            : t('auth.haveAccount')}
+            : mode === 'signup'
+              ? t('auth.haveAccount')
+              : t('auth.backToLogin')}
         </button>
 
       </div>

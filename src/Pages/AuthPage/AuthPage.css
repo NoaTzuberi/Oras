@@ -181,3 +181,25 @@
 }
 
 .auth-switch:active { opacity: 0.6; }
+
+.auth-forgot-link {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8b8faf;
+  cursor: pointer;
+  padding: 0;
+  margin-top: -4px;
+  transition: color 150ms var(--ease-out), opacity 150ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .auth-forgot-link:hover {
+    color: #8b5cf6;
+  }
+}
+
+.auth-forgot-link:active { opacity: 0.6; }

@@ -8,30 +8,45 @@
 }
 
 .settings-content {
-  padding: 20px 16px 100px;
+  padding: 28px 16px 100px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 14px;
-  width: 800px;
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+}
+
+.settings-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 2px 10px;
 }
 
 .settings-title {
   font-family: 'Syne', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: #3730a3;
-  margin: 0 0 2px;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: #241a5c;
+  margin: 0;
   opacity: 0;
   transform: translateY(8px);
-  animation: titleIn 300ms var(--ease-out) forwards;
+  animation: titleIn 350ms var(--ease-out) forwards;
 }
 
 .settings-subtitle {
   font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  color: #e9eaf9;
-  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #8b8faf;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: titleIn 350ms var(--ease-out) 60ms forwards;
 }
 
 @keyframes titleIn {
@@ -59,7 +74,8 @@
 .credit-preview__label {
   font-family: 'DM Sans', sans-serif;
   font-size: 13px;
-  color: #e9eaf9;
+  font-weight: 500;
+  color: #6b6f99;
 }
 
 .credit-preview__value {

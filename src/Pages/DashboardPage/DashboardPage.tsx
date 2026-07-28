@@ -1,12 +1,12 @@
 import { BottomNavBar } from "../../components/BottomNavBar/BottomNavBar";
 import { TopNavBar } from "../../components/TopNavBar/TopNavBar";
-import { Dashboard } from "../../components/Dashboard/Dashboard";
+import { MonthlyStats } from "../../components/MonthlyStats/MonthlyStats";
 
 export const DashboardPage = () => {
   return (
   <div>
     <TopNavBar />
-    <Dashboard />
+    <MonthlyStats />
     <BottomNavBar/>
   </div>
   )

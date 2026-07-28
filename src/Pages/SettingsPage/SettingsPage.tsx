@@ -37,8 +37,10 @@ export const SettingsPage = () => {
     <div className="settings-page">
       <TopNavBar />
       <div className="settings-content">
-        <h2 className="settings-title">{t('settings.title')}</h2>
-        <p className="settings-subtitle">{t('settings.subtitle')}</p>
+        <div className="settings-header">
+          <h2 className="settings-title">{t('settings.title')}</h2>
+          <p className="settings-subtitle">{t('settings.subtitle')}</p>
+        </div>
 
         {/* Live preview */}
         {previewPoints > 0 && (

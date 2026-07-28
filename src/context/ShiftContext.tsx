@@ -148,6 +148,38 @@ export const calcTaxInfo = (profile: UserProfile, shifts: Shift[]): TaxInfo => {
   return { creditPoints, monthlyTaxCredit, grossSalary, netSalary, incomeTax, nationalInsurance, healthInsurance }
 }
 
+export type MonthlyBreakdown = {
+  year: number
+  month: number
+  hours: number
+  grossEarnings: number
+  avgHourlyRate: number
+}
+
+export const getMonthlyBreakdown = (shifts: Shift[], monthsCount: number): MonthlyBreakdown[] => {
+  const now = new Date()
+  const result: MonthlyBreakdown[] = []
+
+  for (let i = monthsCount - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const year = d.getFullYear()
+    const month = d.getMonth()
+
+    const monthShifts = shifts.filter(s => {
+      const sd = new Date(s.date)
+      return sd.getFullYear() === year && sd.getMonth() === month
+    })
+
+    const hours = parseFloat(monthShifts.reduce((sum, s) => sum + s.hours, 0).toFixed(2))
+    const grossEarnings = parseFloat(monthShifts.reduce((sum, s) => sum + s.totalEarnings, 0).toFixed(2))
+    const avgHourlyRate = hours > 0 ? parseFloat((grossEarnings / hours).toFixed(2)) : 0
+
+    result.push({ year, month, hours, grossEarnings, avgHourlyRate })
+  }
+
+  return result
+}
+
 // ── Context ───────────────────────────────────────
 
 const ShiftsContext = createContext<ShiftsContextType | null>(null)
