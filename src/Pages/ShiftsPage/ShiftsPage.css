@@ -1,5 +1,6 @@
 .shifts-page {
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   z-index: 2;
 }

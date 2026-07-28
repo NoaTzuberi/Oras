@@ -1,5 +1,6 @@
 .add-shift-backdrop {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -341,6 +342,7 @@
   .add-shift-card {
     max-width: 100%;
     min-height: 100vh;
+  min-height: 100dvh;
     border-radius: 0;
     border: none;
     box-shadow: none;
