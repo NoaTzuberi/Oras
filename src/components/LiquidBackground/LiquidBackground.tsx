@@ -67,13 +67,12 @@ export const LiquidBackground = () => {
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), material)
     scene.add(mesh)
 
-    let frameId: number
+    let frameId = 0
     const animate = () => {
       frameId = requestAnimationFrame(animate)
       uniforms.u_time.value += 0.012
       renderer.render(scene, camera)
     }
-    animate()
 
     const handleResize = () => {
       renderer.setSize(window.innerWidth, window.innerHeight)
@@ -81,9 +80,21 @@ export const LiquidBackground = () => {
     }
     window.addEventListener('resize', handleResize)
 
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(frameId)
+      } else {
+        animate()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    if (!document.hidden) animate()
+
     return () => {
       cancelAnimationFrame(frameId)
       window.removeEventListener('resize', handleResize)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       renderer.dispose()
       if (current.contains(renderer.domElement)) {
         current.removeChild(renderer.domElement)

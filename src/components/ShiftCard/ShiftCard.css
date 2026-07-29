@@ -20,7 +20,8 @@
   animation: shiftCardIn 300ms var(--ease-out) forwards;
   transition: transform 200ms var(--ease-out), box-shadow 200ms var(--ease-out);
   overflow: hidden;
-  width: 120px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .shift-card::after {
@@ -118,17 +119,25 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .shift-card__hours {
   font-family: 'DM Sans', sans-serif;
   font-size: 10px;
   color: #a5a8c8;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 480px) {
   .shift-card {
-    width: 145px;
+    width: 100%;
     height: auto;
     aspect-ratio: auto;
     flex-wrap: nowrap;

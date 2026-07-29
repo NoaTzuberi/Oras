@@ -3,47 +3,8 @@ import './ShiftCard.css'
 import type { Shift } from '../../context/ShiftContext';
 import { useShifts } from "../../context/ShiftContext"
 import { useTranslation } from "react-i18next"
-
-// ── Helpers (same as AddShiftPage) ───────────────
-
-const checkIfSpecialDay = async (date: Date) => {
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-
-  if (date.getDay() === 6) return { isSpecial: true, reason: 'שבת' }
-
-  try {
-    const res = await fetch(
-      `https://www.hebcal.com/hebcal?v=1&cfg=json&year=${year}&month=${month}&maj=on&min=off&mod=off&nx=off&mf=off&ss=off&s=on&geo=none`
-    )
-    const data = await res.json()
-    const match = data.items?.find((item: any) => {
-      const itemDate = new Date(item.date)
-      return (
-        itemDate.getFullYear() === year &&
-        itemDate.getMonth() + 1 === month &&
-        itemDate.getDate() === day &&
-        item.category === 'holiday' &&
-        item.yomtov === true
-      )
-    })
-    if (match) return { isSpecial: true, reason: match.title }
-  } catch (e) {
-    console.error('Hebcal error:', e)
-  }
-
-  return { isSpecial: false, reason: null }
-}
-
-const calcHours = (start: string, end: string) => {
-  if (!start || !end) return 0
-  const [sh, sm] = start.split(':').map(Number)
-  const [eh, em] = end.split(':').map(Number)
-  let mins = (eh * 60 + em) - (sh * 60 + sm)
-  if (mins < 0) mins += 24 * 60
-  return parseFloat((mins / 60).toFixed(2))
-}
+import { checkIfSpecialDay, calcHours } from '../../utils/shiftHelpers'
+import { InlineError } from '../InlineError/InlineError'
 
 // ── Component ─────────────────────────────────────
 
@@ -75,6 +36,7 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
   })
   const [editLoading, setEditLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [actionError, setActionError] = useState('')
 
   const locale = i18n.language === 'he' ? 'he-IL' : 'en-US'
 
@@ -114,26 +76,35 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
     : null
 
   const handleSave = async () => {
-    if (!editStartTime || !editEndTime) return alert(t('shiftForm.alertEnterTimes'))
-    if (editSalaryType === 'hourly' && !editHourlyRate) return alert(t('shiftForm.alertEnterHourlyRate'))
-    if (editSalaryType === 'total' && !editTotalSalary) return alert(t('shiftForm.alertEnterTotalSalary'))
+    setActionError('')
+
+    if (!editStartTime || !editEndTime) return setActionError(t('shiftForm.alertEnterTimes'))
+    if (editSalaryType === 'hourly' && !editHourlyRate) return setActionError(t('shiftForm.alertEnterHourlyRate'))
+    if (editSalaryType === 'total' && !editTotalSalary) return setActionError(t('shiftForm.alertEnterTotalSalary'))
 
     setSaving(true)
-    await updateShift(shift.id, {
-      date: editDate,
-      startTime: editStartTime,
-      endTime: editEndTime,
-      hours: editHours,
-      salaryType: editSalaryType,
-      baseSalary: editCalculatedSalary ?? 0,
-      tips: parseFloat(editTips) || 0,
-      totalEarnings: editTotalWithTips ?? 0,
-      isShabbatOrHoliday: editSpecialDay.isSpecial,
-      used150: editUse150,
-    })
-    setSaving(false)
-    setEditMode(false)
-    setOpen(false)
+
+    try {
+      await updateShift(shift.id, {
+        date: editDate,
+        startTime: editStartTime,
+        endTime: editEndTime,
+        hours: editHours,
+        salaryType: editSalaryType,
+        baseSalary: editCalculatedSalary ?? 0,
+        tips: parseFloat(editTips) || 0,
+        totalEarnings: editTotalWithTips ?? 0,
+        isShabbatOrHoliday: editSpecialDay.isSpecial,
+        used150: editUse150,
+      })
+      setSaving(false)
+      setEditMode(false)
+      setOpen(false)
+    } catch (e) {
+      console.error('Error saving shift:', e)
+      setActionError(t('shiftCard.errorUpdateFailed'))
+      setSaving(false)
+    }
   }
 
   return (
@@ -219,20 +190,28 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                     <span className="shift-modal__total-label">{t("shiftCard.total")}</span>
                   </div>
 
+                  {actionError && <InlineError>{actionError}</InlineError>}
+
                   <div className="shift-modal__actions">
                     <button
                       className="shift-edit-btn"
-                      onClick={(e) => { e.stopPropagation(); setEditMode(true) }}
+                      onClick={(e) => { e.stopPropagation(); setActionError(''); setEditMode(true) }}
                     >
                        {t("shiftCard.edit")}
                     </button>
                     <button
                       className="shift-delete-btn"
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation()
-                        if (confirm(t("shiftCard.confirmDelete"))) {
-                          deleteShift(shift.id)
+                        if (!confirm(t("shiftCard.confirmDelete"))) return
+
+                        setActionError('')
+                        try {
+                          await deleteShift(shift.id)
                           setOpen(false)
+                        } catch (err) {
+                          console.error('Error deleting shift:', err)
+                          setActionError(t('shiftCard.errorDeleteFailed'))
                         }
                       }}
                     >
@@ -387,6 +366,8 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                       <span className="edit-total-value">₪{editTotalWithTips}</span>
                     </div>
                   )}
+
+                  {actionError && <InlineError>{actionError}</InlineError>}
 
                   {/* Save button */}
                   <button

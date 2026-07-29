@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
+import { reportError } from '../lib/sentry'
 
 export type Shift = {
   id: string
@@ -182,6 +183,20 @@ export const getMonthlyBreakdown = (shifts: Shift[], monthsCount: number): Month
 
 // ── Context ───────────────────────────────────────
 
+// Bounds the shifts fetch to a rolling window instead of a user's entire
+// history: 12 months back (covers the stats page's 6-month breakdown with
+// room to spare) plus a 1-month buffer for forward-dated shifts.
+const HISTORY_MONTHS_BACK = 12
+const HISTORY_MONTHS_FORWARD = 1
+
+const getHistoryWindow = () => {
+  const now = new Date()
+  const from = new Date(now.getFullYear(), now.getMonth() - HISTORY_MONTHS_BACK, 1)
+  const to = new Date(now.getFullYear(), now.getMonth() + HISTORY_MONTHS_FORWARD + 1, 0)
+  const toISODate = (d: Date) => d.toISOString().split('T')[0]
+  return { from: toISODate(from), to: toISODate(to) }
+}
+
 const ShiftsContext = createContext<ShiftsContextType | null>(null)
 
 export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
@@ -205,14 +220,20 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
         return
       }
 
-      // Load shifts
+      // Load shifts (bounded to a rolling window, not the user's entire history)
+      const { from, to } = getHistoryWindow()
       const { data: shiftsData, error: shiftsError } = await supabase
         .from('shifts')
         .select('*')
         .eq('user_id', user.id)
+        .gte('date', from)
+        .lte('date', to)
         .order('date', { ascending: false })
 
-      if (shiftsError) console.error('Shifts error:', shiftsError)
+      if (shiftsError) {
+        console.error('Shifts error:', shiftsError)
+        reportError(shiftsError)
+      }
 
       if (shiftsData) {
         setShifts(shiftsData.map(s => ({
@@ -237,8 +258,10 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', user.id)
         .single()
 
-      if (profileError) console.error('Profile error:', profileError)
-       
+      if (profileError) {
+        console.error('Profile error:', profileError)
+        reportError(profileError)
+      }
 
       if (profileData) {
         setUserProfileState({
@@ -255,6 +278,7 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (e) {
       console.error('Error loading data:', e)
+      reportError(e)
     } finally {
       setLoadingData(false)
     }
@@ -262,7 +286,7 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
 
   const addShift = async (shift: Omit<Shift, 'id'>) => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) throw new Error('Not signed in')
 
     const { data, error } = await supabase
       .from('shifts')
@@ -284,27 +308,29 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
 
     if (error) {
       console.error('Error adding shift:', error)
-      return
+      reportError(error)
+      throw error
     }
 
-    if (data) {
-      setShifts(prev => [{
-        id: data.id,
-        date: data.date,
-        startTime: data.start_time,
-        endTime: data.end_time,
-        hours: data.hours,
-        salaryType: data.salary_type,
-        baseSalary: data.base_salary,
-        tips: data.tips,
-        totalEarnings: data.total_earnings,
-        isShabbatOrHoliday: data.is_shabbat_or_holiday,
-        used150: data.used_150,
-      }, ...prev])
-    }
+    setShifts(prev => [{
+      id: data.id,
+      date: data.date,
+      startTime: data.start_time,
+      endTime: data.end_time,
+      hours: data.hours,
+      salaryType: data.salary_type,
+      baseSalary: data.base_salary,
+      tips: data.tips,
+      totalEarnings: data.total_earnings,
+      isShabbatOrHoliday: data.is_shabbat_or_holiday,
+      used150: data.used_150,
+    }, ...prev])
   }
 
   const updateShift = async (id: string, shift: Omit<Shift, 'id'>) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not signed in')
+
   const { data, error } = await supabase
     .from('shifts')
     .update({
@@ -320,40 +346,45 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
       used_150: shift.used150,
     })
     .eq('id', id)
+    .eq('user_id', user.id)
     .select()
     .single()
 
   if (error) {
     console.error('Error updating shift:', error)
-    return
+    reportError(error)
+    throw error
   }
 
-  if (data) {
-    setShifts(prev => prev.map(s => s.id === id ? {
-      id: data.id,
-      date: data.date,
-      startTime: data.start_time,
-      endTime: data.end_time,
-      hours: data.hours,
-      salaryType: data.salary_type,
-      baseSalary: data.base_salary,
-      tips: data.tips,
-      totalEarnings: data.total_earnings,
-      isShabbatOrHoliday: data.is_shabbat_or_holiday,
-      used150: data.used_150,
-    } : s))
-  }
+  setShifts(prev => prev.map(s => s.id === id ? {
+    id: data.id,
+    date: data.date,
+    startTime: data.start_time,
+    endTime: data.end_time,
+    hours: data.hours,
+    salaryType: data.salary_type,
+    baseSalary: data.base_salary,
+    tips: data.tips,
+    totalEarnings: data.total_earnings,
+    isShabbatOrHoliday: data.is_shabbat_or_holiday,
+    used150: data.used_150,
+  } : s))
 }
 
   const deleteShift = async (id: string) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not signed in')
+
     const { error } = await supabase
       .from('shifts')
       .delete()
       .eq('id', id)
+      .eq('user_id', user.id)
 
     if (error) {
       console.error('Error deleting shift:', error)
-      return
+      reportError(error)
+      throw error
     }
 
     setShifts(prev => prev.filter(s => s.id !== id))
@@ -361,9 +392,7 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
 
   const setUserProfile = async (profile: UserProfile) => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    setUserProfileState(profile)
+    if (!user) throw new Error('Not signed in')
 
     const { error } = await supabase
       .from('user_profiles')
@@ -380,7 +409,13 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
         default_hourly_rate: profile.defaultHourlyRate,
       })
 
-    if (error) console.error('Error saving profile:', error)
+    if (error) {
+      console.error('Error saving profile:', error)
+      reportError(error)
+      throw error
+    }
+
+    setUserProfileState(profile)
   }
 
 const filteredShifts = shifts.filter(shift => {

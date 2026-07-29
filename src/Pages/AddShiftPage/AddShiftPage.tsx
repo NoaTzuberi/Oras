@@ -4,49 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { BottomNavBar } from '../../components/BottomNavBar/BottomNavBar'
 import './AddShiftPage.css'
 import { useShifts } from '../../context/ShiftContext'
-
-
-
-
-const checkIfSpecialDay = async (date: Date) => {
-  const year = date.getFullYear()
-  const month = date.getMonth() + 1
-  const day = date.getDate()
-
-  if (date.getDay() === 6) return { isSpecial: true, reason: 'שבת' }
-
-  try {
-    const res = await fetch(
-      `https://www.hebcal.com/hebcal?v=1&cfg=json&year=${year}&month=${month}&maj=on&min=off&mod=off&nx=off&mf=off&ss=off&s=on&geo=none`
-    )
-    const data = await res.json()
-    const match = data.items?.find((item: any) => {
-      const itemDate = new Date(item.date)
-      return (
-        itemDate.getFullYear() === year &&
-        itemDate.getMonth() + 1 === month &&
-        itemDate.getDate() === day &&
-        item.category === 'holiday' &&
-        item.yomtov === true
-      )
-    })
-    if (match) return { isSpecial: true, reason: match.title }
-  } catch (e) {
-    console.error('Hebcal error:', e)
-  }
-
-  return { isSpecial: false, reason: null }
-}
-
-
-const calcHours = (start: string, end: string) => {
-  if (!start || !end) return 0
-  const [sh, sm] = start.split(':').map(Number)
-  const [eh, em] = end.split(':').map(Number)
-  let mins = (eh * 60 + em) - (sh * 60 + sm)
-  if (mins < 0) mins += 24 * 60
-  return parseFloat((mins / 60).toFixed(2))
-}
+import { checkIfSpecialDay, calcHours } from '../../utils/shiftHelpers'
+import { InlineError } from '../../components/InlineError/InlineError'
 
 export const AddShiftPage = () => {
   const navigate = useNavigate()
@@ -66,6 +25,8 @@ const { addShift } = useShifts()
   const [specialDay, setSpecialDay] = useState<{ isSpecial: boolean; reason: string | null }>({ isSpecial: false, reason: null })
   const [use150, setUse150] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   const hours = calcHours(startTime, endTime)
 
@@ -98,24 +59,34 @@ const { addShift } = useShifts()
   }, [date])
 
   const handleSubmit = async () => {
-  if (!startTime || !endTime) return alert(t('shiftForm.alertEnterTimes'))
-  if (salaryType === 'hourly' && !hourlyRate) return alert(t('shiftForm.alertEnterHourlyRate'))
-  if (salaryType === 'total' && !totalSalary) return alert(t('shiftForm.alertEnterTotalSalary'))
+  setSubmitError('')
 
-  await addShift({
-    date,
-    startTime,
-    endTime,
-    hours,
-    salaryType,
-    baseSalary: calculatedSalary ?? 0,
-    tips: parseFloat(tips) || 0,
-    totalEarnings: totalWithTips ?? 0,
-    isShabbatOrHoliday: specialDay.isSpecial,
-    used150: use150,
-  })
+  if (!startTime || !endTime) return setSubmitError(t('shiftForm.alertEnterTimes'))
+  if (salaryType === 'hourly' && !hourlyRate) return setSubmitError(t('shiftForm.alertEnterHourlyRate'))
+  if (salaryType === 'total' && !totalSalary) return setSubmitError(t('shiftForm.alertEnterTotalSalary'))
 
-  navigate('/shifts')
+  setSubmitting(true)
+
+  try {
+    await addShift({
+      date,
+      startTime,
+      endTime,
+      hours,
+      salaryType,
+      baseSalary: calculatedSalary ?? 0,
+      tips: parseFloat(tips) || 0,
+      totalEarnings: totalWithTips ?? 0,
+      isShabbatOrHoliday: specialDay.isSpecial,
+      used150: use150,
+    })
+
+    navigate('/shifts')
+  } catch (e) {
+    console.error('Error saving shift:', e)
+    setSubmitError(t('shiftForm.errorSaveFailed'))
+    setSubmitting(false)
+  }
 }
 
 
@@ -234,7 +205,11 @@ const { addShift } = useShifts()
             </div>
           )}
 
-          <button className="submit-btn" onClick={handleSubmit}>{t('shiftForm.saveShift')}</button>
+          {submitError && <InlineError>{submitError}</InlineError>}
+
+          <button className="submit-btn" onClick={handleSubmit} disabled={submitting}>
+            {submitting ? t('shiftForm.saving') : t('shiftForm.saveShift')}
+          </button>
         </div>
       </div>
       <BottomNavBar />

@@ -4,6 +4,7 @@ import { BottomNavBar } from '../../components/BottomNavBar/BottomNavBar'
 import { TopNavBar } from '../../components/TopNavBar/TopNavBar'
 import './SettingsPage.css'
 import { calcCreditPoints, useShifts, type UserProfile } from '../../context/ShiftContext'
+import { InlineError } from '../../components/InlineError/InlineError'
 
 export const SettingsPage = () => {
   const { t } = useTranslation()
@@ -12,15 +13,27 @@ export const SettingsPage = () => {
   const [form, setForm] = useState<UserProfile>(userProfile)
   const [childAgeInput, setChildAgeInput] = useState('')
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   const previewPoints = calcCreditPoints(form)
   const previewCredit = parseFloat((previewPoints * 242).toFixed(2))
 
   const handleSave = async () => {
-  await setUserProfile(form)
-  setSaved(true)
-  setTimeout(() => setSaved(false), 2000)
-}
+    setSaveError('')
+    setSaving(true)
+
+    try {
+      await setUserProfile(form)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (e) {
+      console.error('Error saving settings:', e)
+      setSaveError(t('settings.errorSaveFailed'))
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const addChild = () => {
     const age = parseInt(childAgeInput)
@@ -37,11 +50,6 @@ export const SettingsPage = () => {
     <div className="settings-page">
       <TopNavBar />
       <div className="settings-content">
-        <div className="settings-header">
-          <h2 className="settings-title">{t('settings.title')}</h2>
-          <p className="settings-subtitle">{t('settings.subtitle')}</p>
-        </div>
-
         {/* Live preview */}
         {previewPoints > 0 && (
           <div className="credit-preview">
@@ -190,6 +198,8 @@ export const SettingsPage = () => {
           <label className="settings-label">{t('settings.defaultHourlyRate')}</label>
           <div className="input-with-symbol">
             <span className="symbol">₪</span>
+            <span className="per-label">{t('settings.perHourSuffix')}</span>
+
             <input
               type="number"
               className="settings-input"
@@ -200,14 +210,19 @@ export const SettingsPage = () => {
                 defaultHourlyRate: e.target.value ? parseFloat(e.target.value) : null
               }))}
             />
-            <span className="per-label">{t('settings.perHourSuffix')}</span>
           </div>
           <p className="settings-hint">{t('settings.defaultHourlyRateHint')}</p>
         </div>
 
+        {saveError && <InlineError>{saveError}</InlineError>}
+
         {/* Save button */}
-        <button className={`save-btn ${saved ? 'save-btn--saved' : ''}`} onClick={handleSave}>
-          {saved ? t('settings.saved') : t('settings.save')}
+        <button
+          className={`save-btn ${saved ? 'save-btn--saved' : ''}`}
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? t('shiftForm.saving') : saved ? t('settings.saved') : t('settings.save')}
         </button>
 
       </div>

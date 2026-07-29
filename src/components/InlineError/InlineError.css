@@ -1,0 +1,11 @@
+.inline-error {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: #ef4444;
+  margin: 0;
+  text-align: center;
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.2);
+  border-radius: 10px;
+  padding: 8px 12px;
+}

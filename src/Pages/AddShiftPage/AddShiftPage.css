@@ -323,6 +323,11 @@
   letter-spacing: 0.02em;
 }
 
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .submit-btn:active {
   transform: scale(0.97);
   box-shadow: 0 3px 10px rgba(99,102,241,0.25);

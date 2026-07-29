@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
-import type { Session, User } from '@supabase/supabase-js'
+import type { AuthError, Session, User } from '@supabase/supabase-js'
 
 type AuthContextType = {
   user: User | null
@@ -11,11 +11,11 @@ type AuthContextType = {
     password: string,
     firstName: string,
     lastName: string
-  ) => Promise<{ error: any }>
-  signIn: (email: string, password: string) => Promise<{ error: any }>
+  ) => Promise<{ error: AuthError | null }>
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signOut: () => Promise<void>
-  resetPasswordForEmail: (email: string) => Promise<{ error: any }>
-  updatePassword: (newPassword: string) => Promise<{ error: any }>
+  resetPasswordForEmail: (email: string) => Promise<{ error: AuthError | null }>
+  updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)

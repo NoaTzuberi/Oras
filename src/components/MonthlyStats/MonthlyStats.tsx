@@ -18,11 +18,6 @@ export const MonthlyStats = () => {
 
   return (
     <div className="monthly-stats">
-      <div className="monthly-stats__header">
-        <h2 className="monthly-stats__title">{t('stats.title')}</h2>
-        <p className="monthly-stats__header-subtitle">{t('stats.headerSubtitle')}</p>
-      </div>
-
       {!hasAnyData ? (
         <div className="monthly-stats__empty">
           <p>{t('stats.noDataTitle')}</p>

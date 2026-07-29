@@ -116,7 +116,8 @@ const resources = {
         saving: "שומר...",
         alertEnterTimes: "אנא הכנס שעות משמרת",
         alertEnterHourlyRate: "אנא הכנס שכר לשעה",
-        alertEnterTotalSalary: "אנא הכנס שכר כולל"
+        alertEnterTotalSalary: "אנא הכנס שכר כולל",
+        errorSaveFailed: "שגיאה בשמירת המשמרת, נסה שוב"
       },
 
       settings: {
@@ -151,7 +152,8 @@ const resources = {
         defaultHourlyRateHint: "יוכנס אוטומטית בכל משמרת חדשה",
         perHourSuffix: "לשעה",
         save: "שמור הגדרות",
-        saved: "✓ נשמר!"
+        saved: "✓ נשמר!",
+        errorSaveFailed: "שגיאה בשמירת ההגדרות, נסה שוב"
       },
 
       shiftCard: {
@@ -165,6 +167,8 @@ const resources = {
         tips: "טיפים",
         applied150: "שכר 150% הוחל",
         holiday: "שבת/חג",
+        errorUpdateFailed: "שגיאה בעדכון המשמרת, נסה שוב",
+        errorDeleteFailed: "שגיאה במחיקת המשמרת, נסה שוב",
         delete: "מחק משמרת",
         confirmDelete: "בטוח שברצונך למחוק את המשמרת הזו?",
         hourly: "לפי שעה",
@@ -323,7 +327,8 @@ const resources = {
         saving: "Saving...",
         alertEnterTimes: "Please enter shift times",
         alertEnterHourlyRate: "Please enter hourly rate",
-        alertEnterTotalSalary: "Please enter total salary"
+        alertEnterTotalSalary: "Please enter total salary",
+        errorSaveFailed: "Failed to save shift, please try again"
       },
 
       settings: {
@@ -358,7 +363,8 @@ const resources = {
         defaultHourlyRateHint: "Will be auto-filled in every new shift",
         perHourSuffix: "per hour",
         save: "Save settings",
-        saved: "✓ Saved!"
+        saved: "✓ Saved!",
+        errorSaveFailed: "Failed to save settings, please try again"
       },
 
       shiftCard: {
@@ -366,6 +372,8 @@ const resources = {
         hours: "hrs",
         income: "Income",
         total: "Total",
+        errorUpdateFailed: "Failed to update shift, please try again",
+        errorDeleteFailed: "Failed to delete shift, please try again",
         start: "Start",
         end: "End",
         baseSalary: "Base salary",
