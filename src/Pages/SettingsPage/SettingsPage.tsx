@@ -114,23 +114,42 @@ export const SettingsPage = () => {
           <p className="settings-hint">{t('settings.childrenHint')}</p>
         </div>
 
-        {/* Military */}
+        {/* Military / National Service */}
         <div className="settings-section">
-          <label className="settings-label">{t('settings.military')}</label>
+          <label className="settings-label">{t('settings.serviceType')}</label>
           <div className="toggle-row">
-            {[0, 1, 2, 3].map(y => (
+            {([
+              ['none', t('settings.serviceNone')],
+              ['military', t('settings.serviceMilitary')],
+              ['national', t('settings.serviceNational')],
+            ] as const).map(([type, label]) => (
               <button
-                key={y}
-                className={`toggle-btn ${form.militaryYears === y ? 'toggle-btn--active' : ''}`}
-                onClick={() => setForm(f => ({ ...f, militaryYears: y }))}
+                key={type}
+                className={`toggle-btn ${form.serviceType === type ? 'toggle-btn--active' : ''}`}
+                onClick={() => setForm(f => ({
+                  ...f,
+                  serviceType: type,
+                  dischargeDate: type === 'none' ? null : f.dischargeDate,
+                }))}
               >
-                {y === 0 ? t('settings.none') : `${y}+`}
+                {label}
               </button>
             ))}
           </div>
-          <p className="settings-hint">
-            {form.militaryYears >= 2 ? t('settings.militaryPointsHint', { points: form.militaryYears >= 3 ? '1.5' : '1' }) : ''}
-          </p>
+
+          {form.serviceType !== 'none' && (
+            <div className="immigration-year">
+              <label className="settings-label">{t('settings.dischargeDate')}</label>
+              <input
+                type="date"
+                className="settings-input"
+                value={form.dischargeDate ?? ''}
+                onChange={e => setForm(f => ({ ...f, dischargeDate: e.target.value || null }))}
+                max={new Date().toISOString().split('T')[0]}
+              />
+              <p className="settings-hint">{t('settings.dischargeDateHint')}</p>
+            </div>
+          )}
         </div>
 
         {/* Switches */}
@@ -199,7 +218,6 @@ export const SettingsPage = () => {
           <div className="input-with-symbol">
             <span className="symbol">₪</span>
             <span className="per-label">{t('settings.perHourSuffix')}</span>
-
             <input
               type="number"
               className="settings-input"

@@ -1,10 +1,19 @@
 import { describe, it, expect } from 'vitest'
-import { calcCreditPoints, calcTaxInfo, getMonthlyBreakdown, type UserProfile, type Shift } from './ShiftContext'
+import {
+  calcCreditPoints,
+  calcTaxInfo,
+  calcServiceCreditPoints,
+  isServiceCreditEligible,
+  getMonthlyBreakdown,
+  type UserProfile,
+  type Shift,
+} from './ShiftContext'
 
 const baseProfile: UserProfile = {
   gender: null,
   children: [],
-  militaryYears: 0,
+  serviceType: 'none',
+  dischargeDate: null,
   isMoshavMember: false,
   isNewImmigrant: false,
   immigrationYear: null,
@@ -29,10 +38,35 @@ describe('calcCreditPoints', () => {
     expect(calcCreditPoints({ ...baseProfile, gender: 'female', children: [{ age: 10 }] })).toBe(3.75) // 2.75 + 1
   })
 
-  it('adds military service points', () => {
-    expect(calcCreditPoints({ ...baseProfile, gender: 'male', militaryYears: 1 })).toBe(2.25)
-    expect(calcCreditPoints({ ...baseProfile, gender: 'male', militaryYears: 2 })).toBe(3.25)
-    expect(calcCreditPoints({ ...baseProfile, gender: 'male', militaryYears: 3 })).toBe(3.75)
+  it('adds service credit points for an eligible military or national service member', () => {
+    const now = new Date()
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0]
+
+    expect(calcCreditPoints({
+      ...baseProfile, gender: 'male', serviceType: 'military', dischargeDate: oneMonthAgo,
+    })).toBe(4.25) // 2.25 + 2
+
+    expect(calcCreditPoints({
+      ...baseProfile, gender: 'male', serviceType: 'national', dischargeDate: oneMonthAgo,
+    })).toBe(4.25) // 2.25 + 2
+  })
+
+  it('gives no service credit when serviceType is none, regardless of discharge date', () => {
+    const now = new Date()
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0]
+
+    expect(calcCreditPoints({
+      ...baseProfile, gender: 'male', serviceType: 'none', dischargeDate: oneMonthAgo,
+    })).toBe(2.25)
+  })
+
+  it('gives no service credit once the 36-month eligibility window has passed', () => {
+    const now = new Date()
+    const fourYearsAgo = new Date(now.getFullYear() - 4, now.getMonth(), 1).toISOString().split('T')[0]
+
+    expect(calcCreditPoints({
+      ...baseProfile, gender: 'male', serviceType: 'military', dischargeDate: fourYearsAgo,
+    })).toBe(2.25)
   })
 
   it('adds moshav, academic degree, and priority area bonuses', () => {
@@ -141,5 +175,62 @@ describe('getMonthlyBreakdown', () => {
       expect(month.hours).toBe(0)
       expect(month.avgHourlyRate).toBe(0)
     })
+  })
+})
+
+describe('isServiceCreditEligible', () => {
+  // Fixed reference date so these boundary tests are fully deterministic,
+  // independent of when the test suite actually runs.
+  const referenceNow = new Date(2026, 6, 15) // July 15, 2026
+
+  it('is not eligible when there is no discharge date', () => {
+    expect(isServiceCreditEligible(null, referenceNow)).toBe(false)
+  })
+
+  it('is not eligible for an unparseable date', () => {
+    expect(isServiceCreditEligible('not-a-date', referenceNow)).toBe(false)
+  })
+
+  it('is not eligible before the window opens (discharged this same month)', () => {
+    // Eligibility starts the month AFTER discharge, so this month's discharge
+    // hasn't opened its window yet.
+    expect(isServiceCreditEligible('2026-07-01', referenceNow)).toBe(false)
+  })
+
+  it('is eligible in the first month of the window (discharged last month)', () => {
+    expect(isServiceCreditEligible('2026-06-15', referenceNow)).toBe(true)
+  })
+
+  it('is still eligible in the 35th (final) month of the window', () => {
+    expect(isServiceCreditEligible('2023-07-15', referenceNow)).toBe(true)
+  })
+
+  it('is no longer eligible exactly at the 36-month boundary', () => {
+    expect(isServiceCreditEligible('2023-06-15', referenceNow)).toBe(false)
+  })
+})
+
+describe('calcServiceCreditPoints', () => {
+  const referenceNow = new Date(2026, 6, 15)
+  const eligibleDischargeDate = '2026-06-15'
+
+  it('returns 0 for serviceType "none" even with an eligible discharge date', () => {
+    expect(calcServiceCreditPoints('none', eligibleDischargeDate, referenceNow)).toBe(0)
+  })
+
+  it('returns 0 when there is no discharge date', () => {
+    expect(calcServiceCreditPoints('military', null, referenceNow)).toBe(0)
+  })
+
+  it('returns 0 once the eligibility window has passed', () => {
+    expect(calcServiceCreditPoints('military', '2023-06-15', referenceNow)).toBe(0)
+  })
+
+  it('awards military service credit points when eligible', () => {
+    expect(calcServiceCreditPoints('military', eligibleDischargeDate, referenceNow)).toBe(2)
+  })
+
+  it('awards national/civil service credit points when eligible', () => {
+    expect(calcServiceCreditPoints('national', eligibleDischargeDate, referenceNow)).toBe(2)
   })
 })

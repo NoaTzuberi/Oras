@@ -16,10 +16,13 @@ export type Shift = {
   used150: boolean
 }
 
+export type ServiceType = 'none' | 'military' | 'national'
+
 export type UserProfile = {
   gender: 'male' | 'female' | null
   children: { age: number }[]
-  militaryYears: number
+  serviceType: ServiceType
+  dischargeDate: string | null
   isMoshavMember: boolean
   isNewImmigrant: boolean
   immigrationYear: number | null
@@ -55,7 +58,8 @@ setSelectedMonth: React.Dispatch<React.SetStateAction<Date>>
 const defaultProfile: UserProfile = {
   gender: null,
   children: [],
-  militaryYears: 0,
+  serviceType: 'none',
+  dischargeDate: null,
   isMoshavMember: false,
   isNewImmigrant: false,
   immigrationYear: null,
@@ -67,6 +71,45 @@ const defaultProfile: UserProfile = {
 // ── Tax calculation ───────────────────────────────
 
 const CREDIT_POINT_MONTHLY = 242
+
+// Tax credit points for discharged soldiers / national-civil service
+// volunteers are granted for a fixed window starting the month after
+// discharge. Kept as named constants so the amounts/window can be
+// adjusted independently if regulations change.
+const MILITARY_SERVICE_CREDIT_POINTS = 2
+const NATIONAL_SERVICE_CREDIT_POINTS = 2
+const SERVICE_CREDIT_ELIGIBILITY_MONTHS = 36
+
+export const isServiceCreditEligible = (
+  dischargeDate: string | null,
+  now: Date = new Date()
+): boolean => {
+  if (!dischargeDate) return false
+
+  const discharge = new Date(dischargeDate)
+  if (isNaN(discharge.getTime())) return false
+
+  // Eligibility starts the month after discharge, per law.
+  const eligibilityStart = new Date(discharge.getFullYear(), discharge.getMonth() + 1, 1)
+  const monthsSinceEligibilityStart =
+    (now.getFullYear() - eligibilityStart.getFullYear()) * 12 +
+    (now.getMonth() - eligibilityStart.getMonth())
+
+  return monthsSinceEligibilityStart >= 0 && monthsSinceEligibilityStart < SERVICE_CREDIT_ELIGIBILITY_MONTHS
+}
+
+export const calcServiceCreditPoints = (
+  serviceType: ServiceType,
+  dischargeDate: string | null,
+  now: Date = new Date()
+): number => {
+  if (serviceType === 'none') return 0
+  if (!isServiceCreditEligible(dischargeDate, now)) return 0
+
+  return serviceType === 'military'
+    ? MILITARY_SERVICE_CREDIT_POINTS
+    : NATIONAL_SERVICE_CREDIT_POINTS
+}
 
 export const calcCreditPoints = (profile: UserProfile): number => {
   let points = 0
@@ -82,8 +125,7 @@ export const calcCreditPoints = (profile: UserProfile): number => {
     else if (age >= 7 && age <= 18) points += 1
   })
 
-  if (profile.militaryYears >= 2) points += 1
-  if (profile.militaryYears >= 3) points += 0.5
+  points += calcServiceCreditPoints(profile.serviceType, profile.dischargeDate)
 
   if (profile.isMoshavMember) points += 1
 
@@ -267,7 +309,8 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
         setUserProfileState({
           gender: profileData.gender ?? null,
           children: profileData.children ?? [],
-          militaryYears: profileData.military_years ?? 0,
+          serviceType: profileData.service_type ?? 'none',
+          dischargeDate: profileData.discharge_date ?? null,
           isMoshavMember: profileData.is_moshav_member ?? false,
           isNewImmigrant: profileData.is_new_immigrant ?? false,
           immigrationYear: profileData.immigration_year ?? null,
@@ -400,7 +443,8 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
         id: user.id,
         gender: profile.gender,
         children: profile.children,
-        military_years: profile.militaryYears,
+        service_type: profile.serviceType,
+        discharge_date: profile.dischargeDate,
         is_moshav_member: profile.isMoshavMember,
         is_new_immigrant: profile.isNewImmigrant,
         immigration_year: profile.immigrationYear,
