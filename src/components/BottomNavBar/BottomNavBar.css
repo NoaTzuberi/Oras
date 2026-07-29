@@ -93,6 +93,12 @@
 @media (max-width: 480px) {
   .bottom-nav {
     height: calc(56px + env(safe-area-inset-bottom));
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transform: none;
+    -webkit-transform: none;
+    will-change: auto;
   }
 
   .nav-item {
