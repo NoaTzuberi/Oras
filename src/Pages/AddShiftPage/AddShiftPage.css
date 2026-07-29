@@ -130,7 +130,6 @@
   direction: ltr;
   text-align: left;
   unicode-bidi: isolate;
-  overflow: hidden;
 }
 
 .form-input[type="time"] {

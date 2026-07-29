@@ -117,6 +117,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
     margin-top: 20px;
+    align-items: start;
   }
 }
 

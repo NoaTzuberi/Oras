@@ -129,9 +129,13 @@
 @media (max-width: 480px) {
   .shift-card {
     width: 100%;
+    height: auto;
     aspect-ratio: auto;
-    padding: 14px 10px;
-    gap: 10px;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 16px 14px;
+    gap: 8px;
     border-radius: 14px;
   }
 
