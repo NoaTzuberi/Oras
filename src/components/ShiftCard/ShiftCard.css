@@ -129,6 +129,29 @@
 @media (max-width: 480px) {
   .shift-card {
     width: 100%;
+    padding: 8px;
+    gap: 6px;
+    border-radius: 14px;
+  }
+
+  .shift-card__weekday {
+    font-size: 8px;
+  }
+
+  .shift-card__day {
+    font-size: 17px;
+  }
+
+  .shift-card__month {
+    font-size: 11px;
+  }
+
+  .shift-card__total {
+    font-size: 12px;
+  }
+
+  .shift-card__hours {
+    font-size: 8px;
   }
 }
 

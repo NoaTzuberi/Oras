@@ -342,23 +342,37 @@
   .add-shift-card {
     max-width: 100%;
     min-height: 100vh;
-  min-height: 100dvh;
+    min-height: 100dvh;
     border-radius: 0;
     border: none;
     box-shadow: none;
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .card-header {
     position: sticky;
     top: 0;
     z-index: 5;
-    padding-top: calc(18px + env(safe-area-inset-top));
-    background: rgba(255,255,255,0.75);
+    padding: calc(18px + env(safe-area-inset-top)) 20px 16px;
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
 
   .card-body {
     max-height: none;
     overflow-y: visible;
-    padding-bottom: calc(100px + env(safe-area-inset-bottom));
+    padding: 20px 16px calc(110px + env(safe-area-inset-bottom));
+    gap: 18px;
+  }
+
+  .form-section {
+    padding: 18px;
+  }
+
+  .total-summary {
+    padding: 20px;
   }
 }
