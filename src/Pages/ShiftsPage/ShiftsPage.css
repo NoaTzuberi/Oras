@@ -90,6 +90,16 @@
   background: rgba(196,181,253,0.25);
 }
 
+@media (max-width: 480px) {
+  .shifts-summary{
+    display: flex;
+    flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  }
+}
+
 
 
 /* ── Grid ───────────────────────────────────────── */

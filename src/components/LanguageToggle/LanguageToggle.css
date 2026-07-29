@@ -54,3 +54,15 @@
   gap: 6px;
   align-items: center;
 }
+
+@media (max-width: 480px) {
+  .lang-toggle {
+    height: 26px;
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .lang-toggle__inner {
+    gap: 4px;
+  }
+}

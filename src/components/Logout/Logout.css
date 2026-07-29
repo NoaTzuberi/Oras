@@ -38,3 +38,11 @@
 .logout-btn:active {
   transform: scale(0.96);
 }
+
+@media (max-width: 480px) {
+  .logout-btn {
+    height: 26px;
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+}

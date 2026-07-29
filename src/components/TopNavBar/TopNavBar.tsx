@@ -46,9 +46,13 @@ export const TopNavBar = () => {
       </div>
 
       <div className="top-navbar__right">
-        <LogoutButton/>
-        <LanguageToggle />
-        <img src="/logo.png" alt="logo" className="top-navbar__logo" />
+        <div className="top-navbar__actions">
+          <LogoutButton/>
+          <LanguageToggle />
+        </div>
+        <div className="top-navbar__logo-wrap">
+          <img src="/logo.png" alt="logo" className="top-navbar__logo" />
+        </div>
       </div>
     </div>
   )

@@ -128,13 +128,13 @@
 
 @media (max-width: 480px) {
   .shift-card {
-    width: 100%;
+    width: 145px;
     height: auto;
     aspect-ratio: auto;
     flex-wrap: nowrap;
     justify-content: flex-start;
     align-items: center;
-    padding: 16px 14px;
+    padding: 12px 12px;
     gap: 8px;
     border-radius: 14px;
   }
@@ -144,11 +144,11 @@
   }
 
   .shift-card__day {
-    font-size: 20px;
+    font-size: 17px;
   }
 
   .shift-card__month {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .shift-card__total {
