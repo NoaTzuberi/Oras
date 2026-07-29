@@ -129,6 +129,7 @@
   min-width: 0;
   direction: ltr;
   text-align: left;
+  unicode-bidi: isolate;
   overflow: hidden;
 }
 
@@ -392,6 +393,7 @@
 
   .form-input[type="date"] {
     max-width: 160px;
+    align-self: center;
     font-size: 12px;
     padding: 8px;
   }
