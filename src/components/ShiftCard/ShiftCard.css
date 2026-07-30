@@ -86,7 +86,7 @@
 
 .shift-card__day {
   font-family: 'Syne', sans-serif;
-  font-size: 22px;
+  font-size: 30px;
   font-weight: 700;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   -webkit-background-clip: text;
@@ -97,7 +97,7 @@
 
 .shift-card__month {
   font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
+  font-size: 24px;
   font-weight: 600;
   color: #8b5cf6;
   text-transform: uppercase;
@@ -153,15 +153,16 @@
   }
 
   .shift-card__day {
-    font-size: 17px;
+    font-size: 20px;
   }
 
   .shift-card__month {
-    font-size: 14px;
+    font-size: 18px;
   }
 
   .shift-card__total {
     font-size: 15px;
+    margin-bottom: 4px;
   }
 
   .shift-card__hours {
@@ -278,7 +279,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
 }
 
 .shift-modal__section-title {
@@ -288,23 +289,21 @@
   color: #8b8faf;
   text-transform: uppercase;
   letter-spacing: 0.09em;
+  margin-bottom: -5px;
 }
 
 .shift-modal__time-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 28px;
 }
 
 .shift-modal__time-block {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 3px;
-}
-
-.shift-modal__time-block--right {
-  margin-right: auto;
-  align-items: flex-end;
 }
 
 .shift-modal__time-label {
@@ -321,10 +320,17 @@
   color: #3730a3;
 }
 
+.shift-modal__hours-caption {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b5cf6;
+  margin: -4px 0 0;
+}
+
 .shift-modal__time-arrow {
-  font-size: 14px;
+  font-size: 16px;
   color: #c4b5fd;
-  margin-top: 12px;
 }
 
 html[dir="ltr"] .shift-modal__time-arrow {
@@ -341,8 +347,8 @@ html[dir="ltr"] .shift-modal__time-arrow {
   gap: 15px;
 }
 
-.shift-modal__row span:first-child { color: #3730a3; font-weight: 500; }
-.shift-modal__row span:last-child  { color: #8b8faf; }
+.shift-modal__row span:first-child { color: #8b8faf; }
+.shift-modal__row span:last-child  { color: #3730a3; font-weight: 600; }
 .shift-modal__row--highlight span  { color: #7c3aed !important; font-weight: 600 !important; }
 
 .shift-modal__total-block {
@@ -353,6 +359,7 @@ html[dir="ltr"] .shift-modal__time-arrow {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
 
 .shift-modal__total-label {
@@ -493,6 +500,11 @@ html[dir="ltr"] .shift-modal__time-arrow {
   color: #c4b5fd;
   font-size: 1.2rem;
   padding-top: 18px;
+}
+
+html[dir="ltr"] .edit-time-divider {
+  display: inline-block;
+  transform: scaleX(-1);
 }
 
 .edit-hours-summary {

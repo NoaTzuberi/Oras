@@ -149,33 +149,29 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                   <div className="shift-modal__section">
                     <p className="shift-modal__section-title">{t("shiftCard.shiftHours")}</p>
                     <div className="shift-modal__time-row">
-                      <div className="shift-modal__time-block shift-modal__time-block--right">
-                        <span className="shift-modal__time-label">{t("shiftCard.shiftHours")}</span>
-                        <span className="shift-modal__time-value">{shift.hours} {t("shiftCard.hours")}</span>
+                      <div className="shift-modal__time-block">
+                        <span className="shift-modal__time-label">{t("shiftCard.start")}</span>
+                        <span className="shift-modal__time-value">{shift.startTime}</span>
                       </div>
                       <div className="shift-modal__time-arrow">←</div>
                       <div className="shift-modal__time-block">
                         <span className="shift-modal__time-label">{t("shiftCard.end")}</span>
                         <span className="shift-modal__time-value">{shift.endTime}</span>
                       </div>
-                      <div className="shift-modal__time-arrow">←</div>
-                      <div className="shift-modal__time-block">
-                        <span className="shift-modal__time-label">{t("shiftCard.start")}</span>
-                        <span className="shift-modal__time-value">{shift.startTime}</span>
-                      </div>
                     </div>
+                    <p className="shift-modal__hours-caption">{shift.hours} {t("shiftCard.hours")}</p>
                   </div>
 
                   <div className="shift-modal__section">
                     <p className="shift-modal__section-title">{t("shiftCard.income")}</p>
                     <div className="shift-modal__row">
-                      <span>₪{shift.baseSalary}</span>
                       <span>{t("shiftCard.baseSalary")}</span>
+                      <span>₪{shift.baseSalary}</span>
                     </div>
                     {shift.tips > 0 && (
                       <div className="shift-modal__row">
-                        <span>₪{shift.tips}</span>
                         <span>{t("shiftCard.tips")}</span>
+                        <span>₪{shift.tips}</span>
                       </div>
                     )}
                     {shift.used150 && (
@@ -261,7 +257,7 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                           onChange={e => setEditStartTime(e.target.value)}
                         />
                       </div>
-                      <div className="edit-time-divider">→</div>
+                      <div className="edit-time-divider">←</div>
                       <div className="edit-time-block">
                         <span className="edit-time-label">{t('shiftForm.end')}</span>
                         <input
