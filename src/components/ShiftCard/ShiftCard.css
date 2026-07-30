@@ -86,7 +86,7 @@
 
 .shift-card__day {
   font-family: 'Syne', sans-serif;
-  font-size: 30px;
+  font-size: 24px;
   font-weight: 700;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   -webkit-background-clip: text;
@@ -97,7 +97,7 @@
 
 .shift-card__month {
   font-family: 'DM Sans', sans-serif;
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
   color: #8b5cf6;
   text-transform: uppercase;
