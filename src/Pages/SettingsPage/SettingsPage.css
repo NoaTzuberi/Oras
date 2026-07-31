@@ -114,12 +114,41 @@
 
 .settings-input:focus { border-color: #8b5cf6; }
 
-.settings-input[type="date"] {
-  text-align: left;
+.settings-datepicker {
+  display: block;
+  width: 100%;
 }
 
-html[dir="rtl"] .settings-input[type="date"] {
-  text-align: right;
+.react-datepicker-popper {
+  z-index: 20;
+}
+
+.react-datepicker {
+  font-family: 'DM Sans', sans-serif;
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 12px 40px rgba(90,100,200,0.2);
+  overflow: hidden;
+}
+
+.react-datepicker__header {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-bottom: none;
+}
+
+.react-datepicker__current-month,
+.react-datepicker__day-name {
+  color: white;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 8px;
+}
+
+.react-datepicker__day:hover {
+  border-radius: 8px;
 }
 
 /* Toggle buttons */

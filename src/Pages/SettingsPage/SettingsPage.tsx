@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
 import { BottomNavBar } from '../../components/BottomNavBar/BottomNavBar'
 import { TopNavBar } from '../../components/TopNavBar/TopNavBar'
 import './SettingsPage.css'
@@ -140,12 +142,17 @@ export const SettingsPage = () => {
           {form.serviceType !== 'none' && (
             <div className="discharge-service-year">
               <label className="settings-label">{t('settings.dischargeDate')}</label>
-              <input
-                type="date"
+              <DatePicker
+                selected={form.dischargeDate ? new Date(form.dischargeDate) : null}
+                onChange={(date: Date | null) => setForm(f => ({
+                  ...f,
+                  dischargeDate: date ? date.toISOString().split('T')[0] : null,
+                }))}
+                maxDate={new Date()}
+                dateFormat="dd/MM/yyyy"
+                placeholderText="DD/MM/YYYY"
                 className="settings-input"
-                value={form.dischargeDate ?? ''}
-                onChange={e => setForm(f => ({ ...f, dischargeDate: e.target.value || null }))}
-                max={new Date().toISOString().split('T')[0]}
+                wrapperClassName="settings-datepicker"
               />
               <p className="settings-hint">{t('settings.dischargeDateHint')}</p>
             </div>
