@@ -1,6 +1,6 @@
 # Oras 💼
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-green?style=for-the-badge)]([https://oras-app.vercel.app](https://oras-o7w7.onrender.com))
+🔗 Live Demo: [https://oras-app.vercel.app]
 
 A full-stack shift management and salary tracking application designed to help users manage their working hours, income, and tax-related calculations in a simple and transparent way.
 
