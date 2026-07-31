@@ -153,12 +153,16 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  direction: ltr;
 }
 
 .time-block { flex: 1; display: flex; flex-direction: column; gap: 5px; }
-.time-label { font-family: 'DM Sans', sans-serif; font-size: 11px; color: #a5a8c8; direction: rtl; text-align: right; }
+.time-label { font-family: 'DM Sans', sans-serif; font-size: 11px; color: #a5a8c8; }
 .time-divider { font-size: 16px; color: #c4b5fd; margin-top: 16px; flex-shrink: 0; }
+
+html[dir="rtl"] .time-divider {
+  display: inline-block;
+  transform: scaleX(-1);
+}
 
 .hours-summary {
   font-family: 'Syne', sans-serif;

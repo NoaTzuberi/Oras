@@ -153,6 +153,12 @@ export const SettingsPage = () => {
                 placeholderText="DD/MM/YYYY"
                 className="settings-input"
                 wrapperClassName="settings-datepicker"
+                portalId="datepicker-portal"
+                showYearDropdown
+                showMonthDropdown
+                dropdownMode="select"
+                yearDropdownItemNumber={60}
+                scrollableYearDropdown
               />
               <p className="settings-hint">{t('settings.dischargeDateHint')}</p>
             </div>
