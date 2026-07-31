@@ -115,9 +115,7 @@
 .settings-input:focus { border-color: #8b5cf6; }
 
 .settings-input[type="date"] {
-  direction: ltr;
   text-align: left;
-  unicode-bidi: isolate;
 }
 
 html[dir="rtl"] .settings-input[type="date"] {
