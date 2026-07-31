@@ -116,12 +116,11 @@
 
 .settings-input[type="date"] {
   direction: ltr;
-  text-align: left;
+  text-align: center;   /* was left */
   unicode-bidi: isolate;
   box-sizing: border-box;
   width: 100%;
-  justify-content: center;
-
+  outline: none;
 }
 
 html[dir="rtl"] .settings-input[type="date"] {
