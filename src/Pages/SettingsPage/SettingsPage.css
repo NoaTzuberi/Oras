@@ -99,8 +99,6 @@
 
 .settings-input {
   flex: 1;
-  justify-content: center;
-  align-items: center;
   padding: 10px 14px;
   border-radius: 12px;
   border: 1.5px solid rgba(196,181,253,0.3);
@@ -120,6 +118,10 @@
   direction: ltr;
   text-align: left;
   unicode-bidi: isolate;
+  box-sizing: border-box;
+  width: 100%;
+  justify-content: center;
+
 }
 
 html[dir="rtl"] .settings-input[type="date"] {
