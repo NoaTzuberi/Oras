@@ -116,11 +116,8 @@
 
 .settings-input[type="date"] {
   direction: ltr;
-  text-align: center;   /* was left */
+  text-align: left;
   unicode-bidi: isolate;
-  box-sizing: border-box;
-  width: 100%;
-  outline: none;
 }
 
 html[dir="rtl"] .settings-input[type="date"] {
@@ -276,7 +273,8 @@ html[dir="rtl"] .settings-input[type="date"] {
 
 .switch--on .switch__thumb { transform: translateX(18px); }
 
-.immigration-year {
+.immigration-year,
+.discharge-service-year {
   display: flex;
   flex-direction: column;
   gap: 8px;
