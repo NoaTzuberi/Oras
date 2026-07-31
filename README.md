@@ -1,6 +1,6 @@
 # Oras 💼
 
-🔗 Live Demo: [https://oras-app.vercel.app]
+🔗 Live Demo: https://oras-o7w7.onrender.com
 
 A full-stack shift management and salary tracking application designed to help users manage their working hours, income, and tax-related calculations in a simple and transparent way.
 
