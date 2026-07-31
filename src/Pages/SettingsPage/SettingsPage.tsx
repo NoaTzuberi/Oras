@@ -138,7 +138,7 @@ export const SettingsPage = () => {
           </div>
 
           {form.serviceType !== 'none' && (
-            <div className="immigration-year">
+            <div className="discharge-service-year">
               <label className="settings-label">{t('settings.dischargeDate')}</label>
               <input
                 type="date"
