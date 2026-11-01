@@ -11,7 +11,8 @@
     "test": "vitest run",
     "db:pull": "supabase db pull",
     "db:diff": "supabase db diff -f",
-    "db:push": "supabase db push"
+    "db:push": "supabase db push",
+    "backfill:jobs": "node scripts/backfill-jobs.mjs"
   },
   "dependencies": {
     "@sentry/react": "^10.69.0",
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@types/node": "^24.12.2",
+    "@types/pg": "^8.11.10",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
@@ -36,6 +38,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
+    "pg": "^8.13.1",
     "supabase": "^2.110.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",

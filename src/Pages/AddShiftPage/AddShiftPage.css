@@ -427,3 +427,8 @@ html[dir="rtl"] .time-divider {
     font-size: 14px;
   }
 }
+.form-select {
+  direction: inherit;
+  text-align: start;
+  appearance: auto;
+}

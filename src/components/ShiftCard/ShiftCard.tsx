@@ -3,14 +3,16 @@ import './ShiftCard.css'
 import type { Shift } from '../../context/ShiftContext';
 import { useShifts } from "../../context/ShiftContext"
 import { useTranslation } from "react-i18next"
-import { checkIfSpecialDay, calcHours } from '../../utils/shiftHelpers'
+import { checkIfSpecialDay, calcHours, shiftBaseRate } from '../../utils/shiftHelpers'
 import { InlineError } from '../InlineError/InlineError'
+import { JobSelect } from '../JobSelect/JobSelect'
 
 // ── Component ─────────────────────────────────────
 
 export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSProperties }) => {
   const { t, i18n } = useTranslation()
-  const { deleteShift, updateShift } = useShifts()
+  const { deleteShift, updateShift, jobs } = useShifts()
+  const shiftJob = jobs.find(j => j.id === shift.jobId) ?? null
 
   const [open, setOpen] = useState(false)
   const [editMode, setEditMode] = useState(false)
@@ -20,11 +22,13 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
   const [editStartTime, setEditStartTime] = useState(shift.startTime)
   const [editEndTime, setEditEndTime] = useState(shift.endTime)
   const [editSalaryType, setEditSalaryType] = useState<'hourly' | 'total'>(shift.salaryType)
-  const [editHourlyRate, setEditHourlyRate] = useState(
-    shift.salaryType === 'hourly' && shift.hours > 0
-      ? String((shift.baseSalary / shift.hours).toFixed(2))
-      : ''
-  )
+  const [editJobId, setEditJobId] = useState<string | null>(shift.jobId)
+  // Base rate, before the x1.5. Rebuilding it from base_salary / hours
+  // re-applied the premium on every edit of a 150% shift.
+  const [editHourlyRate, setEditHourlyRate] = useState(() => {
+    const rate = shiftBaseRate(shift)
+    return rate != null ? String(rate) : ''
+  })
   const [editTotalSalary, setEditTotalSalary] = useState(
     shift.salaryType === 'total' ? String(shift.baseSalary) : ''
   )
@@ -96,6 +100,12 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
         totalEarnings: editTotalWithTips ?? 0,
         isShabbatOrHoliday: editSpecialDay.isSpecial,
         used150: editUse150,
+        jobId: editJobId,
+        hourlyRate: editSalaryType === 'hourly' ? parseFloat(editHourlyRate) : null,
+        regularHours: null,
+        shabbatHours: null,
+        shabbatPremiumApplied: null,
+        shabbatVerified: null,
       })
       setSaving(false)
       setEditMode(false)
@@ -146,6 +156,12 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                 </div>
 
                 <div className="shift-modal__body">
+                  {shiftJob && (
+                    <div className="shift-modal__row">
+                      <span>{t('shiftForm.job')}</span>
+                      <span>{shiftJob.name}</span>
+                    </div>
+                  )}
                   <div className="shift-modal__section">
                     <p className="shift-modal__section-title">{t("shiftCard.shiftHours")}</p>
                     <div className="shift-modal__time-row">
@@ -227,6 +243,21 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                 </div>
 
                 <div className="shift-modal__body shift-modal__edit-body">
+
+                  {/* Job */}
+                  <div className="edit-form-section">
+                    <label className="edit-form-label">{t('shiftForm.job')}</label>
+                    <JobSelect
+                      jobs={jobs}
+                      value={editJobId}
+                      onChange={id => {
+                        setEditJobId(id)
+                        const rate = jobs.find(j => j.id === id)?.hourlyRate
+                        if (rate != null) setEditHourlyRate(String(rate))
+                      }}
+                      className="edit-form-input"
+                    />
+                  </div>
 
                   {/* Date */}
                   <div className="edit-form-section">

@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { supabase } from '../lib/supabase'
 import { reportError } from '../lib/sentry'
+import { historyWindow } from '../utils/dates'
+import { pickLastUsedJobId } from '../utils/jobs'
 
 export type Shift = {
   id: string
@@ -14,7 +16,25 @@ export type Shift = {
   totalEarnings: number
   isShabbatOrHoliday: boolean
   used150: boolean
+  // Added with jobs. NULL on shifts saved before that (and before backfill).
+  jobId: string | null
+  hourlyRate: number | null
+  regularHours: number | null
+  shabbatHours: number | null
+  shabbatPremiumApplied: boolean | null
+  shabbatVerified: boolean | null
 }
+
+export type Job = {
+  id: string
+  name: string
+  hourlyRate: number | null
+  geonameid: number
+  paysShabbatPremium: boolean
+  archived: boolean
+}
+
+export type JobInput = Omit<Job, 'id'>
 
 export type ServiceType = 'none' | 'military' | 'national'
 
@@ -46,6 +66,10 @@ type ShiftsContextType = {
   addShift: (shift: Omit<Shift, 'id'>) => Promise<void>
   updateShift: (id: string, shift: Omit<Shift, 'id'>) => Promise<void>
   deleteShift: (id: string) => Promise<void>
+  jobs: Job[]
+  addJob: (job: JobInput) => Promise<Job>
+  updateJob: (id: string, job: JobInput) => Promise<void>
+  lastUsedJobId: string | null
   userProfile: UserProfile
   setUserProfile: (profile: UserProfile) => Promise<void>
   taxInfo: TaxInfo
@@ -231,18 +255,91 @@ export const getMonthlyBreakdown = (shifts: Shift[], monthsCount: number): Month
 const HISTORY_MONTHS_BACK = 12
 const HISTORY_MONTHS_FORWARD = 1
 
-const getHistoryWindow = () => {
-  const now = new Date()
-  const from = new Date(now.getFullYear(), now.getMonth() - HISTORY_MONTHS_BACK, 1)
-  const to = new Date(now.getFullYear(), now.getMonth() + HISTORY_MONTHS_FORWARD + 1, 0)
-  const toISODate = (d: Date) => d.toISOString().split('T')[0]
-  return { from: toISODate(from), to: toISODate(to) }
+const getHistoryWindow = () => historyWindow(HISTORY_MONTHS_BACK, HISTORY_MONTHS_FORWARD)
+
+// ── Row mapping ───────────────────────────────────
+
+/* eslint-disable @typescript-eslint/no-explicit-any -- untyped Supabase rows */
+const numOrNull = (v: any): number | null => (v === null || v === undefined ? null : Number(v))
+
+const rowToShift = (s: any): Shift => ({
+  id: s.id,
+  date: s.date,
+  startTime: s.start_time,
+  endTime: s.end_time,
+  hours: s.hours,
+  salaryType: s.salary_type,
+  baseSalary: s.base_salary,
+  tips: s.tips,
+  totalEarnings: s.total_earnings,
+  isShabbatOrHoliday: s.is_shabbat_or_holiday,
+  used150: s.used_150,
+  jobId: s.job_id ?? null,
+  hourlyRate: numOrNull(s.hourly_rate),
+  regularHours: numOrNull(s.regular_hours),
+  shabbatHours: numOrNull(s.shabbat_hours),
+  shabbatPremiumApplied: s.shabbat_premium_applied ?? null,
+  shabbatVerified: s.shabbat_verified ?? null,
+})
+
+const rowToJob = (j: any): Job => ({
+  id: j.id,
+  name: j.name,
+  hourlyRate: numOrNull(j.hourly_rate),
+  geonameid: j.geonameid,
+  paysShabbatPremium: j.pays_shabbat_premium,
+  archived: j.archived,
+})
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
+// Old columns (used_150, is_shabbat_or_holiday, base_salary, total_earnings)
+// keep being written so older app versions still read correct data.
+const shiftToRow = (shift: Omit<Shift, 'id'>) => ({
+  date: shift.date,
+  start_time: shift.startTime,
+  end_time: shift.endTime,
+  hours: shift.hours,
+  salary_type: shift.salaryType,
+  base_salary: shift.baseSalary,
+  tips: shift.tips,
+  total_earnings: shift.totalEarnings,
+  is_shabbat_or_holiday: shift.isShabbatOrHoliday,
+  used_150: shift.used150,
+  job_id: shift.jobId,
+  hourly_rate: shift.hourlyRate,
+  regular_hours: shift.regularHours,
+  shabbat_hours: shift.shabbatHours,
+  shabbat_premium_applied: shift.shabbatPremiumApplied,
+  shabbat_verified: shift.shabbatVerified,
+})
+
+const jobToRow = (job: JobInput) => ({
+  name: job.name.trim(),
+  hourly_rate: job.hourlyRate,
+  geonameid: job.geonameid,
+  pays_shabbat_premium: job.paysShabbatPremium,
+  archived: job.archived,
+})
+
+const LAST_JOB_KEY = 'oras.lastJobId'
+
+const readLastJobId = (): string | null => {
+  try { return localStorage.getItem(LAST_JOB_KEY) } catch { return null }
 }
+
+const writeLastJobId = (id: string | null) => {
+  try {
+    if (id) localStorage.setItem(LAST_JOB_KEY, id)
+  } catch { /* storage unavailable: fall back to the latest shift's job */ }
+}
+
 
 const ShiftsContext = createContext<ShiftsContextType | null>(null)
 
 export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
   const [shifts, setShifts] = useState<Shift[]>([])
+  const [jobs, setJobs] = useState<Job[]>([])
+  const [storedLastJobId, setStoredLastJobId] = useState<string | null>(() => readLastJobId())
   const [userProfile, setUserProfileState] = useState<UserProfile>(defaultProfile)
   const [loadingData, setLoadingData] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState(new Date())
@@ -278,19 +375,22 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
       }
 
       if (shiftsData) {
-        setShifts(shiftsData.map(s => ({
-          id: s.id,
-          date: s.date,
-          startTime: s.start_time,
-          endTime: s.end_time,
-          hours: s.hours,
-          salaryType: s.salary_type,
-          baseSalary: s.base_salary,
-          tips: s.tips,
-          totalEarnings: s.total_earnings,
-          isShabbatOrHoliday: s.is_shabbat_or_holiday,
-          used150: s.used_150,
-        })))
+        setShifts(shiftsData.map(rowToShift))
+      }
+
+      const { data: jobsData, error: jobsError } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+
+      if (jobsError) {
+        console.error('Jobs error:', jobsError)
+        reportError(jobsError)
+      }
+
+      if (jobsData) {
+        setJobs(jobsData.map(rowToJob))
       }
 
       // Load profile
@@ -333,19 +433,7 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
 
     const { data, error } = await supabase
       .from('shifts')
-      .insert({
-        user_id: user.id,
-        date: shift.date,
-        start_time: shift.startTime,
-        end_time: shift.endTime,
-        hours: shift.hours,
-        salary_type: shift.salaryType,
-        base_salary: shift.baseSalary,
-        tips: shift.tips,
-        total_earnings: shift.totalEarnings,
-        is_shabbat_or_holiday: shift.isShabbatOrHoliday,
-        used_150: shift.used150,
-      })
+      .insert({ user_id: user.id, ...shiftToRow(shift) })
       .select()
       .single()
 
@@ -355,19 +443,8 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
       throw error
     }
 
-    setShifts(prev => [{
-      id: data.id,
-      date: data.date,
-      startTime: data.start_time,
-      endTime: data.end_time,
-      hours: data.hours,
-      salaryType: data.salary_type,
-      baseSalary: data.base_salary,
-      tips: data.tips,
-      totalEarnings: data.total_earnings,
-      isShabbatOrHoliday: data.is_shabbat_or_holiday,
-      used150: data.used_150,
-    }, ...prev])
+    setShifts(prev => [rowToShift(data), ...prev])
+    rememberJob(shift.jobId)
   }
 
   const updateShift = async (id: string, shift: Omit<Shift, 'id'>) => {
@@ -376,18 +453,7 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
 
   const { data, error } = await supabase
     .from('shifts')
-    .update({
-      date: shift.date,
-      start_time: shift.startTime,
-      end_time: shift.endTime,
-      hours: shift.hours,
-      salary_type: shift.salaryType,
-      base_salary: shift.baseSalary,
-      tips: shift.tips,
-      total_earnings: shift.totalEarnings,
-      is_shabbat_or_holiday: shift.isShabbatOrHoliday,
-      used_150: shift.used150,
-    })
+    .update(shiftToRow(shift))
     .eq('id', id)
     .eq('user_id', user.id)
     .select()
@@ -399,20 +465,59 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
     throw error
   }
 
-  setShifts(prev => prev.map(s => s.id === id ? {
-    id: data.id,
-    date: data.date,
-    startTime: data.start_time,
-    endTime: data.end_time,
-    hours: data.hours,
-    salaryType: data.salary_type,
-    baseSalary: data.base_salary,
-    tips: data.tips,
-    totalEarnings: data.total_earnings,
-    isShabbatOrHoliday: data.is_shabbat_or_holiday,
-    used150: data.used_150,
-  } : s))
+  setShifts(prev => prev.map(s => s.id === id ? rowToShift(data) : s))
+  rememberJob(shift.jobId)
 }
+
+  const rememberJob = (jobId: string | null) => {
+    if (!jobId) return
+    writeLastJobId(jobId)
+    setStoredLastJobId(jobId)
+  }
+
+  const addJob = async (job: JobInput): Promise<Job> => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not signed in')
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .insert({ user_id: user.id, ...jobToRow(job) })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding job:', error)
+      reportError(error)
+      throw error
+    }
+
+    const created = rowToJob(data)
+    setJobs(prev => [...prev, created])
+    return created
+  }
+
+  const updateJob = async (id: string, job: JobInput) => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not signed in')
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .update(jobToRow(job))
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating job:', error)
+      reportError(error)
+      throw error
+    }
+
+    setJobs(prev => prev.map(j => j.id === id ? rowToJob(data) : j))
+  }
+
+  const lastUsedJobId = pickLastUsedJobId(jobs, shifts, storedLastJobId)
 
   const deleteShift = async (id: string) => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -484,6 +589,11 @@ const filteredShifts = shifts.filter(shift => {
       addShift,
       deleteShift,
       updateShift,
+
+      jobs,
+      addJob,
+      updateJob,
+      lastUsedJobId,
 
       userProfile,
       setUserProfile,

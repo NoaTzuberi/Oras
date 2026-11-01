@@ -6,19 +6,34 @@ import './AddShiftPage.css'
 import { useShifts } from '../../context/ShiftContext'
 import { checkIfSpecialDay, calcHours } from '../../utils/shiftHelpers'
 import { InlineError } from '../../components/InlineError/InlineError'
+import { JobSelect } from '../../components/JobSelect/JobSelect'
+import { jerusalemISODate } from '../../utils/dates'
 
 export const AddShiftPage = () => {
   const navigate = useNavigate()
   const { t } = useTranslation()
-const { addShift } = useShifts()
+  const { addShift, userProfile, jobs, lastUsedJobId } = useShifts()
 
-  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(() => jerusalemISODate())
   const [startTime, setStartTime] = useState('')
   const [endTime, setEndTime] = useState('')
   const [salaryType, setSalaryType] = useState<'hourly' | 'total'>('hourly')
-  const { userProfile } = useShifts()
-  const [hourlyRate, setHourlyRate] = useState('')
+  // undefined = user hasn't picked yet, so follow the last used job
+  // (jobs load asynchronously, so this can't be a one-time initial value).
+  const [jobChoice, setJobChoice] = useState<string | null | undefined>(undefined)
+  const jobId = jobChoice === undefined ? lastUsedJobId : jobChoice
+  const selectedJob = jobs.find(j => j.id === jobId) ?? null
 
+  // undefined = not edited, so prefill from the job (or the profile default)
+  const [rateInput, setRateInput] = useState<string | undefined>(undefined)
+  const prefillRate = selectedJob?.hourlyRate ?? userProfile?.defaultHourlyRate ?? null
+  const hourlyRate = rateInput ?? (prefillRate != null ? String(prefillRate) : '')
+  const setHourlyRate = (value: string) => setRateInput(value)
+
+  const handleJobChange = (id: string | null) => {
+    setJobChoice(id)
+    setRateInput(undefined)
+  }
 
   const [totalSalary, setTotalSalary] = useState('')
   const [tips, setTips] = useState('')
@@ -29,12 +44,6 @@ const { addShift } = useShifts()
   const [submitError, setSubmitError] = useState('')
 
   const hours = calcHours(startTime, endTime)
-
-  useEffect(() => {
-  if (userProfile?.defaultHourlyRate) {
-    setHourlyRate(String(userProfile.defaultHourlyRate))
-  }
-}, [userProfile])
 
   const calculatedSalary = (() => {
     if (salaryType === 'hourly' && hourlyRate && hours > 0) {
@@ -79,6 +88,12 @@ const { addShift } = useShifts()
       totalEarnings: totalWithTips ?? 0,
       isShabbatOrHoliday: specialDay.isSpecial,
       used150: use150,
+      jobId,
+      hourlyRate: salaryType === 'hourly' ? parseFloat(hourlyRate) : null,
+      regularHours: null,
+      shabbatHours: null,
+      shabbatPremiumApplied: null,
+      shabbatVerified: null,
     })
 
     navigate('/shifts')
@@ -101,6 +116,14 @@ const { addShift } = useShifts()
         </div>
 
         <div className="card-body">
+          <div className="form-section">
+            <label className="form-label">{t('shiftForm.job')}</label>
+            <JobSelect jobs={jobs} value={jobId} onChange={handleJobChange} className="form-input form-select" />
+            {jobs.filter(j => !j.archived).length === 0 && (
+              <p className="hint">{t('shiftForm.addJobHint')}</p>
+            )}
+          </div>
+
           <div className="form-section">
             <label className="form-label">{t('shiftForm.date')}</label>
             <input

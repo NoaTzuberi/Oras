@@ -7,6 +7,7 @@ import { TopNavBar } from '../../components/TopNavBar/TopNavBar'
 import './SettingsPage.css'
 import { calcCreditPoints, useShifts, type UserProfile } from '../../context/ShiftContext'
 import { InlineError } from '../../components/InlineError/InlineError'
+import { JobsManager } from '../../components/JobsManager/JobsManager'
 
 export const SettingsPage = () => {
   const { t } = useTranslation()
@@ -224,6 +225,9 @@ export const SettingsPage = () => {
             </div>
           )}
         </div>
+
+        {/* Jobs: saved immediately, separate from the profile Save button */}
+        <JobsManager />
 
         {/* Default hourly rate */}
         <div className="settings-section">

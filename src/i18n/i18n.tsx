@@ -91,6 +91,9 @@ const resources = {
       },
 
       shiftForm: {
+        job: "עבודה",
+        noJob: "ללא עבודה",
+        addJobHint: "אפשר להוסיף עבודות (שכר, עיר, תוספת שבת) בהגדרות",
         date: "תאריך",
         checkingDate: "בודק תאריך...",
         shiftHoursLabel: "שעות המשמרת",
@@ -118,6 +121,31 @@ const resources = {
         alertEnterHourlyRate: "אנא הכנס שכר לשעה",
         alertEnterTotalSalary: "אנא הכנס שכר כולל",
         errorSaveFailed: "שגיאה בשמירת המשמרת, נסה שוב"
+      },
+
+      jobs: {
+        title: "העבודות שלי",
+        hint: "לכל עבודה שכר, עיר (לזמני שבת) ומדיניות תוספת שבת משלה",
+        empty: "עוד לא הוספת עבודה",
+        add: "+ הוסף עבודה",
+        namePlaceholder: "שם העבודה / המעסיק",
+        ratePlaceholder: "שכר לשעה",
+        city: "עיר (לזמני כניסת ויציאת שבת)",
+        paysPremium: "המעסיק משלם 150% בשבת",
+        paysPremiumHint: "ברירת המחדל למשמרות בעבודה הזו",
+        premiumOn: "תוספת שבת",
+        premiumOff: "ללא תוספת שבת",
+        edit: "עריכה",
+        archive: "העבר לארכיון",
+        restore: "שחזר",
+        archivedTag: "בארכיון",
+        showArchived: "הצג ארכיון ({{count}})",
+        hideArchived: "הסתר ארכיון",
+        save: "שמור",
+        cancel: "ביטול",
+        errorNameRequired: "אנא הכנס שם לעבודה",
+        errorRate: "שכר לשעה לא תקין",
+        errorSaveFailed: "שגיאה בשמירת העבודה, נסה שוב"
       },
 
       settings: {
@@ -306,6 +334,9 @@ const resources = {
       },
 
       shiftForm: {
+        job: "Job",
+        noJob: "No job",
+        addJobHint: "Add your jobs (rate, city, Shabbat premium) in Settings",
         date: "Date",
         checkingDate: "Checking date...",
         shiftHoursLabel: "Shift hours",
@@ -333,6 +364,31 @@ const resources = {
         alertEnterHourlyRate: "Please enter hourly rate",
         alertEnterTotalSalary: "Please enter total salary",
         errorSaveFailed: "Failed to save shift, please try again"
+      },
+
+      jobs: {
+        title: "My jobs",
+        hint: "Each job has its own rate, city (for Shabbat times) and Shabbat premium policy",
+        empty: "You haven't added a job yet",
+        add: "+ Add job",
+        namePlaceholder: "Job / employer name",
+        ratePlaceholder: "Hourly rate",
+        city: "City (for Shabbat start and end times)",
+        paysPremium: "Employer pays 150% on Shabbat",
+        paysPremiumHint: "Default for shifts at this job",
+        premiumOn: "Shabbat premium",
+        premiumOff: "No Shabbat premium",
+        edit: "Edit",
+        archive: "Archive",
+        restore: "Restore",
+        archivedTag: "archived",
+        showArchived: "Show archived ({{count}})",
+        hideArchived: "Hide archived",
+        save: "Save",
+        cancel: "Cancel",
+        errorNameRequired: "Please enter a job name",
+        errorRate: "Invalid hourly rate",
+        errorSaveFailed: "Couldn't save the job, please try again"
       },
 
       settings: {

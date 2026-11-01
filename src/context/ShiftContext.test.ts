@@ -9,6 +9,16 @@ import {
   type Shift,
 } from './ShiftContext'
 
+// Shape of a shift saved before jobs existed: all new fields NULL.
+const legacyShiftFields = {
+  jobId: null,
+  hourlyRate: null,
+  regularHours: null,
+  shabbatHours: null,
+  shabbatPremiumApplied: null,
+  shabbatVerified: null,
+}
+
 const baseProfile: UserProfile = {
   gender: null,
   children: [],
@@ -102,6 +112,7 @@ describe('calcTaxInfo', () => {
     totalEarnings,
     isShabbatOrHoliday: false,
     used150: false,
+    ...legacyShiftFields,
   })
 
   it('computes gross, tax, insurance, and net for a mid-range salary', () => {
@@ -152,12 +163,12 @@ describe('getMonthlyBreakdown', () => {
       {
         id: '1', date: thisMonth, startTime: '09:00', endTime: '17:00',
         hours: 8, salaryType: 'total', baseSalary: 400, tips: 0,
-        totalEarnings: 400, isShabbatOrHoliday: false, used150: false,
+        totalEarnings: 400, isShabbatOrHoliday: false, used150: false, ...legacyShiftFields,
       },
       {
         id: '2', date: thisMonth, startTime: '09:00', endTime: '13:00',
         hours: 4, salaryType: 'total', baseSalary: 200, tips: 0,
-        totalEarnings: 200, isShabbatOrHoliday: false, used150: false,
+        totalEarnings: 200, isShabbatOrHoliday: false, used150: false, ...legacyShiftFields,
       },
     ]
 
