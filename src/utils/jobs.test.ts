@@ -4,6 +4,7 @@ import type { Job, Shift } from '../context/ShiftContext'
 
 const job = (id: string, archived = false): Job => ({
   id, name: id, hourlyRate: 50, geonameid: 293397, paysShabbatPremium: true, color: null, archived,
+  pensionActive: true, pensionEmployeePct: 6, tipsInPayslip: true,
 })
 
 const shift = (jobId: string | null): Shift => ({

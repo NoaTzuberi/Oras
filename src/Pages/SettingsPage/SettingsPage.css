@@ -500,3 +500,40 @@
     box-shadow: 0 10px 28px rgba(99,102,241,0.45);
   }
 }
+/* One-time prompts (birth-year check, gender missing) */
+.settings-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(254, 243, 199, 0.8);
+  border: 1px solid rgba(217, 119, 6, 0.4);
+  font-family: 'DM Sans', sans-serif;
+}
+
+.settings-notice__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.settings-notice__text {
+  margin: 0;
+  font-size: 12px;
+  color: #92400e;
+}
+
+.settings-notice__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: #92400e;
+}
+
+.settings-notice .add-child-btn { align-self: flex-start; }
+
+.settings-input--year { max-width: 110px; }

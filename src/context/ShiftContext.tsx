@@ -4,6 +4,8 @@ import { reportError } from '../lib/sentry'
 import { historyWindow } from '../utils/dates'
 import { pickLastUsedJobId } from '../utils/jobs'
 import { parseLocalISODate } from '../utils/localDate'
+import { calcTaxInfo, periodOf, type TaxInfo } from '../tax/calc'
+import { childrenToStored, parseStoredChildren, type Child, type ParentColumn } from '../tax/children'
 
 export type Shift = {
   id: string
@@ -36,6 +38,10 @@ export type Job = {
   paysShabbatPremium: boolean | null
   color: string | null
   archived: boolean
+  // Tax settings. NULL = the default (pension on at 6%, tips on the payslip).
+  pensionActive: boolean | null
+  pensionEmployeePct: number | null
+  tipsInPayslip: boolean | null
 }
 
 // color is assigned by the database and not editable yet
@@ -45,26 +51,22 @@ export type ServiceType = 'none' | 'military' | 'national'
 
 export type UserProfile = {
   gender: 'male' | 'female' | null
-  children: { age: number }[]
+  children: Child[]
+  // Tax column for child points; NULL = 1 for women, 2 for men
+  parentColumn: ParentColumn | null
   serviceType: ServiceType
   dischargeDate: string | null
+  // No longer counted or editable (see calcCreditPoints); kept as stored
   isMoshavMember: boolean
   isNewImmigrant: boolean
   immigrationYear: number | null
   hasAcademicDegree: boolean
+  // No longer counted or editable (see calcCreditPoints); kept as stored
   isPriorityArea: boolean
   defaultHourlyRate: number | null
 }
 
-export type TaxInfo = {
-  creditPoints: number
-  monthlyTaxCredit: number
-  grossSalary: number
-  netSalary: number
-  incomeTax: number
-  nationalInsurance: number
-  healthInsurance: number
-}
+export type { TaxInfo } from '../tax/calc'
 
 type ShiftsContextType = {
   shifts: Shift[]
@@ -87,6 +89,7 @@ setSelectedMonth: React.Dispatch<React.SetStateAction<Date>>
 const defaultProfile: UserProfile = {
   gender: null,
   children: [],
+  parentColumn: null,
   serviceType: 'none',
   dischargeDate: null,
   isMoshavMember: false,
@@ -95,131 +98,6 @@ const defaultProfile: UserProfile = {
   hasAcademicDegree: false,
   isPriorityArea: false,
   defaultHourlyRate: null,
-}
-
-// ── Tax calculation ───────────────────────────────
-
-const CREDIT_POINT_MONTHLY = 242
-
-// Tax credit points for discharged soldiers / national-civil service
-// volunteers are granted for a fixed window starting the month after
-// discharge. Kept as named constants so the amounts/window can be
-// adjusted independently if regulations change.
-const MILITARY_SERVICE_CREDIT_POINTS = 2
-const NATIONAL_SERVICE_CREDIT_POINTS = 2
-const SERVICE_CREDIT_ELIGIBILITY_MONTHS = 36
-
-export const isServiceCreditEligible = (
-  dischargeDate: string | null,
-  now: Date = new Date()
-): boolean => {
-  if (!dischargeDate) return false
-
-  // Local midnight: new Date('YYYY-MM-DD') is UTC midnight, which is the
-  // previous day (and month, on the 1st) west of UTC.
-  const discharge = parseLocalISODate(dischargeDate)
-  if (isNaN(discharge.getTime())) return false
-
-  // Eligibility starts the month after discharge, per law.
-  const eligibilityStart = new Date(discharge.getFullYear(), discharge.getMonth() + 1, 1)
-  const monthsSinceEligibilityStart =
-    (now.getFullYear() - eligibilityStart.getFullYear()) * 12 +
-    (now.getMonth() - eligibilityStart.getMonth())
-
-  return monthsSinceEligibilityStart >= 0 && monthsSinceEligibilityStart < SERVICE_CREDIT_ELIGIBILITY_MONTHS
-}
-
-export const calcServiceCreditPoints = (
-  serviceType: ServiceType,
-  dischargeDate: string | null,
-  now: Date = new Date()
-): number => {
-  if (serviceType === 'none') return 0
-  if (!isServiceCreditEligible(dischargeDate, now)) return 0
-
-  return serviceType === 'military'
-    ? MILITARY_SERVICE_CREDIT_POINTS
-    : NATIONAL_SERVICE_CREDIT_POINTS
-}
-
-export const calcCreditPoints = (profile: UserProfile): number => {
-  let points = 0
-
-  if (profile.gender === 'female') points += 2.75
-  else if (profile.gender === 'male') points += 2.25
-  else return 0
-
-  profile.children.forEach(child => {
-    const age = child.age
-    if (age === 0) points += 1.5
-    else if (age >= 1 && age <= 6) points += 2.5
-    else if (age >= 7 && age <= 18) points += 1
-  })
-
-  points += calcServiceCreditPoints(profile.serviceType, profile.dischargeDate)
-
-  if (profile.isMoshavMember) points += 1
-
-  if (profile.isNewImmigrant && profile.immigrationYear) {
-    const yearsInIsrael = new Date().getFullYear() - profile.immigrationYear
-    if (yearsInIsrael <= 3) points += 3
-    else if (yearsInIsrael <= 6) points += 2
-    else if (yearsInIsrael <= 10) points += 1
-  }
-
-  if (profile.hasAcademicDegree) points += 0.5
-  if (profile.isPriorityArea) points += 0.5
-
-  return parseFloat(points.toFixed(2))
-}
-
-const calcIncomeTax = (monthlyGross: number, creditPoints: number): number => {
-  const brackets = [
-    { limit: 7010, rate: 0.10 },
-    { limit: 10060, rate: 0.14 },
-    { limit: 16150, rate: 0.20 },
-    { limit: 21440, rate: 0.31 },
-    { limit: 44520, rate: 0.35 },
-    { limit: 55270, rate: 0.47 },
-    { limit: Infinity, rate: 0.50 },
-  ]
-
-  let tax = 0
-  let remaining = monthlyGross
-  let prev = 0
-
-  for (const bracket of brackets) {
-    if (remaining <= 0) break
-    const taxable = Math.min(remaining, bracket.limit - prev)
-    tax += taxable * bracket.rate
-    remaining -= taxable
-    prev = bracket.limit
-  }
-
-  return Math.max(0, parseFloat((tax - creditPoints * CREDIT_POINT_MONTHLY).toFixed(2)))
-}
-
-const calcNationalInsurance = (monthlyGross: number): number => {
-  if (monthlyGross <= 7522) return parseFloat((monthlyGross * 0.04).toFixed(2))
-  return parseFloat((7522 * 0.04 + (monthlyGross - 7522) * 0.07).toFixed(2))
-}
-
-const calcHealthInsurance = (monthlyGross: number): number => {
-  if (monthlyGross <= 7522) return parseFloat((monthlyGross * 0.031).toFixed(2))
-  return parseFloat((7522 * 0.031 + (monthlyGross - 7522) * 0.05).toFixed(2))
-}
-
-export const calcTaxInfo = (profile: UserProfile, shifts: Shift[]): TaxInfo => {
-  const creditPoints = calcCreditPoints(profile)
-  const monthlyTaxCredit = parseFloat((creditPoints * CREDIT_POINT_MONTHLY).toFixed(2))
-
-  const grossSalary = parseFloat(shifts.reduce((sum, s) => sum + s.totalEarnings, 0).toFixed(2))
-  const incomeTax = calcIncomeTax(grossSalary, creditPoints)
-  const nationalInsurance = calcNationalInsurance(grossSalary)
-  const healthInsurance = calcHealthInsurance(grossSalary)
-  const netSalary = parseFloat((grossSalary - incomeTax - nationalInsurance - healthInsurance).toFixed(2))
-
-  return { creditPoints, monthlyTaxCredit, grossSalary, netSalary, incomeTax, nationalInsurance, healthInsurance }
 }
 
 export type MonthlyBreakdown = {
@@ -240,7 +118,7 @@ export const getMonthlyBreakdown = (shifts: Shift[], monthsCount: number): Month
     const month = d.getMonth()
 
     const monthShifts = shifts.filter(s => {
-      const sd = new Date(s.date)
+      const sd = parseLocalISODate(s.date)
       return sd.getFullYear() === year && sd.getMonth() === month
     })
 
@@ -297,6 +175,9 @@ const rowToJob = (j: any): Job => ({
   paysShabbatPremium: j.pays_shabbat_premium ?? null,
   color: j.color ?? null,
   archived: j.archived,
+  pensionActive: j.pension_active ?? null,
+  pensionEmployeePct: numOrNull(j.pension_employee_pct),
+  tipsInPayslip: j.tips_in_payslip ?? null,
 })
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
@@ -327,6 +208,9 @@ const jobToRow = (job: JobInput) => ({
   geonameid: job.geonameid,
   pays_shabbat_premium: job.paysShabbatPremium,
   archived: job.archived,
+  pension_active: job.pensionActive,
+  pension_employee_pct: job.pensionEmployeePct,
+  tips_in_payslip: job.tipsInPayslip,
 })
 
 const LAST_JOB_KEY = 'oras.lastJobId'
@@ -416,7 +300,8 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
       if (profileData) {
         setUserProfileState({
           gender: profileData.gender ?? null,
-          children: profileData.children ?? [],
+          children: parseStoredChildren(profileData.children, new Date().getFullYear()),
+          parentColumn: profileData.parent_column === 1 || profileData.parent_column === 2 ? profileData.parent_column : null,
           serviceType: profileData.service_type ?? 'none',
           dischargeDate: profileData.discharge_date ?? null,
           isMoshavMember: profileData.is_moshav_member ?? false,
@@ -555,7 +440,8 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
       .upsert({
         id: user.id,
         gender: profile.gender,
-        children: profile.children,
+        children: childrenToStored(profile.children, new Date().getFullYear()),
+        parent_column: profile.parentColumn,
         service_type: profile.serviceType,
         discharge_date: profile.dischargeDate,
         is_moshav_member: profile.isMoshavMember,
@@ -576,7 +462,7 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
   }
 
 const filteredShifts = shifts.filter(shift => {
-  const shiftDate = new Date(shift.date)
+  const shiftDate = parseLocalISODate(shift.date)
 
   return (
     shiftDate.getMonth() === selectedMonth.getMonth() &&
@@ -584,7 +470,7 @@ const filteredShifts = shifts.filter(shift => {
   )
 })
 
-  const taxInfo = calcTaxInfo(userProfile, filteredShifts)
+  const taxInfo = calcTaxInfo(userProfile, filteredShifts, jobs, periodOf(selectedMonth))
   return (
   <ShiftsContext.Provider
     value={{

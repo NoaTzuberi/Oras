@@ -4,6 +4,7 @@ import { useShifts, type Job, type JobInput } from '../../context/ShiftContext'
 import { jobDisplayName, jobToInput as toInput, newJobDefaults } from '../../utils/jobs'
 import { ISRAELI_CITIES, cityName } from '../../utils/cities'
 import { InlineError } from '../InlineError/InlineError'
+import { jobTaxSettings } from '../../tax/calc'
 import './JobsManager.css'
 
 
@@ -19,6 +20,11 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
   // stores it in the user's language.
   const [form, setForm] = useState<JobInput>(() => ({ ...initial, name: initial.name ?? t('jobs.defaultName') }))
   const [rate, setRate] = useState(initial.hourlyRate != null ? String(initial.hourlyRate) : '')
+  // NULL settings show (and save) as their defaults once the job is edited
+  const defaults = jobTaxSettings(initial)
+  const [pensionActive, setPensionActive] = useState(defaults.pensionActive)
+  const [pensionPct, setPensionPct] = useState(String(defaults.pensionPct))
+  const [tipsInPayslip, setTipsInPayslip] = useState(defaults.tipsInPayslip)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -27,10 +33,20 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
     if (!form.name?.trim()) return setError(t('jobs.errorNameRequired'))
     const parsedRate = rate.trim() === '' ? null : parseFloat(rate)
     if (parsedRate !== null && (isNaN(parsedRate) || parsedRate < 0)) return setError(t('jobs.errorRate'))
+    const parsedPct = parseFloat(pensionPct)
+    if (pensionActive && (isNaN(parsedPct) || parsedPct < 0 || parsedPct > 20)) return setError(t('jobs.errorPensionPct'))
 
     setSaving(true)
     try {
-      await onSave({ ...form, name: form.name!.trim(), hourlyRate: parsedRate })
+      await onSave({
+        ...form,
+        name: form.name!.trim(),
+        hourlyRate: parsedRate,
+        pensionActive,
+        // Keep the stored % when pension is turned off, so turning it back on restores it
+        pensionEmployeePct: isNaN(parsedPct) ? initial.pensionEmployeePct : parsedPct,
+        tipsInPayslip,
+      })
     } catch {
       setError(t('jobs.errorSaveFailed'))
       setSaving(false)
@@ -89,6 +105,44 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
         </div>
       </div>
 
+      <div className="switch-row" onClick={() => setPensionActive(v => !v)}>
+        <div className="switch-info">
+          <span className="switch-title">{t('jobs.pension')}</span>
+          <span className="switch-hint">{t('jobs.pensionHint')}</span>
+        </div>
+        <div className={`switch ${pensionActive ? 'switch--on' : ''}`}>
+          <div className="switch__thumb" />
+        </div>
+      </div>
+
+      {pensionActive && (
+        <label className="job-editor__field">
+          <span className="switch-hint">{t('jobs.pensionPct')}</span>
+          <div className="input-with-symbol">
+            <input
+              type="number"
+              className="settings-input"
+              value={pensionPct}
+              min={0}
+              max={20}
+              step={0.5}
+              onChange={e => setPensionPct(e.target.value)}
+            />
+            <span className="per-label">%</span>
+          </div>
+        </label>
+      )}
+
+      <div className="switch-row" onClick={() => setTipsInPayslip(v => !v)}>
+        <div className="switch-info">
+          <span className="switch-title">{t('jobs.tipsInPayslip')}</span>
+          <span className="switch-hint">{t('jobs.tipsInPayslipHint')}</span>
+        </div>
+        <div className={`switch ${tipsInPayslip ? 'switch--on' : ''}`}>
+          <div className="switch__thumb" />
+        </div>
+      </div>
+
       {error && <InlineError>{error}</InlineError>}
 
       <div className="job-editor__actions">
@@ -138,6 +192,11 @@ export const JobsManager = () => {
             {cityName(job.geonameid, i18n.language)}
             {' · '}
             {job.paysShabbatPremium === null ? t('jobs.premiumUnset') : job.paysShabbatPremium ? t('jobs.premiumOn') : t('jobs.premiumOff')}
+            {' · '}
+            {(() => {
+              const tax = jobTaxSettings(job)
+              return tax.pensionActive ? t('jobs.pensionOn', { pct: tax.pensionPct }) : t('jobs.pensionOff')
+            })()}
           </span>
         </div>
         <div className="job-row__actions">

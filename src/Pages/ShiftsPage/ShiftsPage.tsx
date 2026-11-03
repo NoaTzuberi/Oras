@@ -5,6 +5,7 @@ import './ShiftsPage.css'
 import { useShifts } from '../../context/ShiftContext'
 import { useTranslation } from 'react-i18next'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { parseLocalISODate } from '../../utils/localDate'
 
 export const ShiftsPage = () => {
 const { t } = useTranslation()
@@ -112,7 +113,7 @@ const monthLabel = `${
             {filteredShifts
               .sort(
                (a, b) =>
-                  new Date(b.date).getTime() - new Date(a.date).getTime()
+                  parseLocalISODate(b.date).getTime() - parseLocalISODate(a.date).getTime()
               )
               .map((shift, i) => (
               <ShiftCard

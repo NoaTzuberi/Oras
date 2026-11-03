@@ -1,6 +1,7 @@
 import type { TFunction } from 'i18next'
 import type { Job, JobInput, Shift } from '../context/ShiftContext'
 import { DEFAULT_GEONAMEID } from './cities'
+import { DEFAULT_PENSION_EMPLOYEE_PCT } from '../tax/calc'
 
 export const newJobDefaults: JobInput = {
   name: '',
@@ -8,6 +9,9 @@ export const newJobDefaults: JobInput = {
   geonameid: DEFAULT_GEONAMEID,
   paysShabbatPremium: true,
   archived: false,
+  pensionActive: true,
+  pensionEmployeePct: DEFAULT_PENSION_EMPLOYEE_PCT,
+  tipsInPayslip: true,
 }
 
 export const jobToInput = (job: Job): JobInput => ({
@@ -16,6 +20,9 @@ export const jobToInput = (job: Job): JobInput => ({
   geonameid: job.geonameid,
   paysShabbatPremium: job.paysShabbatPremium,
   archived: job.archived,
+  pensionActive: job.pensionActive,
+  pensionEmployeePct: job.pensionEmployeePct,
+  tipsInPayslip: job.tipsInPayslip,
 })
 
 /** The job's name, or the translated default name for the backfilled job. */

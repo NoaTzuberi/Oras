@@ -5,7 +5,10 @@ import 'react-datepicker/dist/react-datepicker.css'
 import { BottomNavBar } from '../../components/BottomNavBar/BottomNavBar'
 import { TopNavBar } from '../../components/TopNavBar/TopNavBar'
 import './SettingsPage.css'
-import { calcCreditPoints, useShifts, type UserProfile } from '../../context/ShiftContext'
+import { useShifts, type UserProfile } from '../../context/ShiftContext'
+import { calcCreditPoints, periodOf } from '../../tax/calc'
+import { resolveParentColumn, type Child } from '../../tax/children'
+import { taxConfigFor } from '../../tax'
 import { InlineError } from '../../components/InlineError/InlineError'
 import { JobsManager } from '../../components/JobsManager/JobsManager'
 import { parseLocalISODate, toLocalISODate } from '../../utils/localDate'
@@ -15,13 +18,22 @@ export const SettingsPage = () => {
   const { userProfile, setUserProfile } = useShifts()
 
   const [form, setForm] = useState<UserProfile>(userProfile)
-  const [childAgeInput, setChildAgeInput] = useState('')
+  const [childYearInput, setChildYearInput] = useState('')
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [confirmError, setConfirmError] = useState('')
+  const [confirming, setConfirming] = useState(false)
 
-  const previewPoints = calcCreditPoints(form)
-  const previewCredit = parseFloat((previewPoints * 242).toFixed(2))
+  const today = periodOf(new Date())
+  const currentYear = today.year
+  const { config } = taxConfigFor(currentYear)
+  const previewPoints = calcCreditPoints(form, today, config)
+  const previewCredit = parseFloat((previewPoints * config.creditPointMonthly.value).toFixed(2))
+
+  // Children whose birth year was estimated from an age typed before
+  const estimatedChildren = form.children.map((c, i) => ({ c, i })).filter(({ c }) => c.estimated)
+  const isValidBirthYear = (y: number) => Number.isInteger(y) && y >= currentYear - 30 && y <= currentYear
 
   const handleSave = async () => {
     setSaveError('')
@@ -40,10 +52,36 @@ export const SettingsPage = () => {
   }
 
   const addChild = () => {
-    const age = parseInt(childAgeInput)
-    if (isNaN(age) || age < 0 || age > 18) return
-    setForm(f => ({ ...f, children: [...f.children, { age }] }))
-    setChildAgeInput('')
+    const birthYear = parseInt(childYearInput)
+    if (!isValidBirthYear(birthYear)) return
+    setForm(f => ({ ...f, children: [...f.children, { birthYear, estimated: false }] }))
+    setChildYearInput('')
+  }
+
+  const setChildYear = (index: number, value: string) => {
+    const birthYear = parseInt(value)
+    setForm(f => ({
+      ...f,
+      children: f.children.map((c, i) => (i === index ? { ...c, birthYear: isNaN(birthYear) ? c.birthYear : birthYear } : c)),
+    }))
+  }
+
+  // One-time check of birth years converted from ages. Saves only the
+  // children, so other unsaved edits on the page stay as drafts.
+  const confirmChildren = async () => {
+    setConfirmError('')
+    if (!form.children.every(c => isValidBirthYear(c.birthYear))) return setConfirmError(t('settings.childYearInvalid'))
+    const children: Child[] = form.children.map(c => ({ ...c, estimated: false }))
+    setConfirming(true)
+    try {
+      await setUserProfile({ ...userProfile, children })
+      setForm(f => ({ ...f, children }))
+    } catch (e) {
+      console.error('Error saving children:', e)
+      setConfirmError(t('settings.errorSaveFailed'))
+    } finally {
+      setConfirming(false)
+    }
   }
 
   const removeChild = (index: number) => {
@@ -68,6 +106,31 @@ export const SettingsPage = () => {
           </div>
         )}
 
+        {/* Birth years converted from ages: ask once */}
+        {estimatedChildren.length > 0 && (
+          <div className="settings-notice">
+            <p className="settings-notice__title">{t('settings.confirmChildrenTitle')}</p>
+            <p className="settings-notice__text">{t('settings.confirmChildrenBody')}</p>
+            {estimatedChildren.map(({ c, i }) => (
+              <label key={i} className="settings-notice__row">
+                <span>{t('settings.childN', { n: i + 1 })}</span>
+                <input
+                  type="number"
+                  className="settings-input settings-input--year"
+                  value={c.birthYear}
+                  min={currentYear - 30}
+                  max={currentYear}
+                  onChange={e => setChildYear(i, e.target.value)}
+                />
+              </label>
+            ))}
+            {confirmError && <InlineError>{confirmError}</InlineError>}
+            <button className="add-child-btn" onClick={confirmChildren} disabled={confirming}>
+              {confirming ? t('shiftForm.saving') : t('settings.confirmChildrenButton')}
+            </button>
+          </div>
+        )}
+
         {/* Gender */}
         <div className="settings-section">
           <label className="settings-label">{t('settings.gender')}</label>
@@ -85,9 +148,13 @@ export const SettingsPage = () => {
               {t('settings.female')}
             </button>
           </div>
-          <p className="settings-hint">
-            {form.gender === 'male' ? t('settings.basePointsMale') : form.gender === 'female' ? t('settings.basePointsFemale') : ''}
-          </p>
+          {form.gender === null ? (
+            <p className="settings-notice settings-notice__text">{t('settings.genderRequired')}</p>
+          ) : (
+            <p className="settings-hint">
+              {form.gender === 'male' ? t('settings.basePointsMale') : t('settings.basePointsFemale')}
+            </p>
+          )}
         </div>
 
         {/* Children */}
@@ -97,11 +164,11 @@ export const SettingsPage = () => {
             <input
               type="number"
               className="settings-input"
-              placeholder={t('settings.childAgePlaceholder') ?? ''}
-              value={childAgeInput}
-              onChange={e => setChildAgeInput(e.target.value)}
-              min={0}
-              max={18}
+              placeholder={t('settings.childBirthYearPlaceholder') ?? ''}
+              value={childYearInput}
+              onChange={e => setChildYearInput(e.target.value)}
+              min={currentYear - 30}
+              max={currentYear}
             />
             <button className="add-child-btn" onClick={addChild}>{t('settings.addChild')}</button>
           </div>
@@ -109,13 +176,34 @@ export const SettingsPage = () => {
             <div className="children-list">
               {form.children.map((child, i) => (
                 <div key={i} className="child-tag">
-                  <span>{t('settings.age', { age: child.age })}</span>
+                  <span>
+                    {t('settings.childBirthYear', { year: child.birthYear, age: Math.max(0, currentYear - child.birthYear) })}
+                    {child.estimated && ` · ${t('settings.childEstimated')}`}
+                  </span>
                   <button onClick={() => removeChild(i)}>✕</button>
                 </div>
               ))}
             </div>
           )}
           <p className="settings-hint">{t('settings.childrenHint')}</p>
+
+          {form.children.length > 0 && (
+            <>
+              <label className="settings-label">{t('settings.parentColumn')}</label>
+              <div className="toggle-row">
+                {([1, 2] as const).map(col => (
+                  <button
+                    key={col}
+                    className={`toggle-btn ${resolveParentColumn(form) === col ? 'toggle-btn--active' : ''}`}
+                    onClick={() => setForm(f => ({ ...f, parentColumn: col }))}
+                  >
+                    {col === 1 ? t('settings.parentColumn1') : t('settings.parentColumn2')}
+                  </button>
+                ))}
+              </div>
+              <p className="settings-hint">{t('settings.parentColumnHint')}</p>
+            </>
+          )}
         </div>
 
         {/* Military / National Service */}
@@ -171,32 +259,14 @@ export const SettingsPage = () => {
         <div className="settings-section">
           <label className="settings-label">{t('settings.additionalDetails')}</label>
 
-          <div className="switch-row" onClick={() => setForm(f => ({ ...f, isMoshavMember: !f.isMoshavMember }))}>
-            <div className="switch-info">
-              <span className="switch-title">{t('settings.moshavMember')}</span>
-              <span className="switch-hint">{t('settings.moshavHint')}</span>
-            </div>
-            <div className={`switch ${form.isMoshavMember ? 'switch--on' : ''}`}>
-              <div className="switch__thumb" />
-            </div>
-          </div>
-
+          {/* Moshav and priority area are no longer offered: they aren't
+              credit points (see calcCreditPoints). Stored values are kept. */}
           <div className="switch-row" onClick={() => setForm(f => ({ ...f, hasAcademicDegree: !f.hasAcademicDegree }))}>
             <div className="switch-info">
               <span className="switch-title">{t('settings.academicDegree')}</span>
               <span className="switch-hint">{t('settings.academicHint')}</span>
             </div>
             <div className={`switch ${form.hasAcademicDegree ? 'switch--on' : ''}`}>
-              <div className="switch__thumb" />
-            </div>
-          </div>
-
-          <div className="switch-row" onClick={() => setForm(f => ({ ...f, isPriorityArea: !f.isPriorityArea }))}>
-            <div className="switch-info">
-              <span className="switch-title">{t('settings.priorityArea')}</span>
-              <span className="switch-hint">{t('settings.priorityHint')}</span>
-            </div>
-            <div className={`switch ${form.isPriorityArea ? 'switch--on' : ''}`}>
               <div className="switch__thumb" />
             </div>
           </div>

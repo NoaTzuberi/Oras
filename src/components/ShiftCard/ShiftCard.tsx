@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next"
 import { InlineError } from '../InlineError/InlineError'
 import { ShiftEditForm } from '../ShiftEditForm/ShiftEditForm'
 import { jobDisplayName } from '../../utils/jobs'
+import { parseLocalISODate } from '../../utils/localDate'
 
 // ── Component ─────────────────────────────────────
 
@@ -21,15 +22,17 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
 
   const locale = i18n.language === 'he' ? 'he-IL' : 'en-US'
 
-  const formattedDate = new Date(shift.date).toLocaleDateString(locale, {
+  // Local midnight: new Date('YYYY-MM-DD') is UTC, the previous day west of UTC
+  const shiftDate = parseLocalISODate(shift.date)
+  const formattedDate = shiftDate.toLocaleDateString(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   })
 
-  const day = new Date(shift.date).getDate()
-  const month = new Date(shift.date).toLocaleDateString(locale, { month: 'short' })
-  const weekday = new Date(shift.date).toLocaleDateString(locale, { weekday: 'short' })
+  const day = shiftDate.getDate()
+  const month = shiftDate.toLocaleDateString(locale, { month: 'short' })
+  const weekday = shiftDate.toLocaleDateString(locale, { weekday: 'short' })
 
   return (
     <>
