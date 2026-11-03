@@ -212,10 +212,6 @@
   margin: 0 auto 20px;
 }
 
-/* Centered when it fits, scrolls from the start when it doesn't */
-.dashboard-tabs .job-tab:first-child { margin-inline-start: auto; }
-.dashboard-tabs .job-tab:last-child { margin-inline-end: auto; }
-
 .card--breakdown { text-align: start; cursor: default; }
 .card--breakdown h3 { text-align: center; }
 

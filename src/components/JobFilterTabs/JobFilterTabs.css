@@ -9,6 +9,10 @@
 
 .job-tabs::-webkit-scrollbar { display: none; }
 
+/* Centered when it fits, scrolls from the start when it doesn't */
+.job-tab:first-child { margin-inline-start: auto; }
+.job-tab:last-child { margin-inline-end: auto; }
+
 .job-tab {
   --tab-color: #6366f1;
   --tab-fill: #4f46e5;
