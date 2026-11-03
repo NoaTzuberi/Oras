@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useShifts } from '../../context/ShiftContext'
 import { useTranslation } from "react-i18next"
 import { FitText } from '../FitText/FitText'
+import { JobFilterTabs } from '../JobFilterTabs/JobFilterTabs'
+import { useJobFilter } from '../../hooks/useJobFilter'
+import { filterShiftsByJob, jobBreakdown } from '../../utils/jobFilter'
+import { jobDisplayName } from '../../utils/jobs'
+import { NO_JOB_COLOR, jobColor } from '../../utils/jobColors'
+import { formatHM, formatMoney } from '../../utils/format'
 import './Dashboard.css'
 
 // One-time notice about the 2026 tax/net update. Remembered per device:
@@ -18,7 +24,11 @@ const writeDismissed = () => {
 }
 
 export const Dashboard = () => {
-  const { taxInfo, userProfile, filteredShifts, shifts, loadingData } = useShifts()
+  const { taxInfo, userProfile, filteredShifts: monthShifts, shifts, jobs, loadingData } = useShifts()
+  const { activeJobs, showTabs, selected: jobFilter, select: setJobFilter } = useJobFilter()
+  const filteredShifts = filterShiftsByJob(monthShifts, jobFilter)
+  const selectedJob = jobs.find(j => j.id === jobFilter) ?? null
+  const breakdown = jobFilter === null ? jobBreakdown(monthShifts, jobs) : []
   const [updateDismissed, setUpdateDismissed] = useState(readDismissed)
   // Only users with shifts had a net calculated the old way
   const showTaxUpdate = !updateDismissed && !loadingData && shifts.length > 0
@@ -46,6 +56,9 @@ const totalEarnings = filteredShifts.reduce(
 
 const averageHourlyRate =
   totalHours > 0 ? totalEarnings / totalHours : 0
+
+  // "All" uses the tax calculation's gross (same number); a job tab sums its shifts
+  const gross = selectedJob ? Math.round(totalEarnings * 100) / 100 : taxInfo.grossSalary
 
   return (
     <div className="dashboard">
@@ -90,6 +103,12 @@ const averageHourlyRate =
         </div>
       )}
 
+      {showTabs && (
+        <div className="dashboard-tabs">
+          <JobFilterTabs jobs={activeJobs} selected={jobFilter} onSelect={setJobFilter} />
+        </div>
+      )}
+
       {/* Cards */}
       <div className='card-container'>
 
@@ -97,12 +116,49 @@ const averageHourlyRate =
         <div className="card card--gross">
           <div className="card-icon">💼</div>
           <h3>{t("dashboard.grossTitle")}</h3>
-          <FitText className="card-value">₪{taxInfo.grossSalary.toLocaleString()}</FitText>
+          <FitText className="card-value">₪{gross.toLocaleString()}</FitText>
           <span className="card-subtitle">
-            {t("dashboard.grossSubtitle")}
+            {selectedJob
+              ? t("dashboard.jobGrossSubtitle", { job: jobDisplayName(selectedJob, t) })
+              : t("dashboard.grossSubtitle")}
           </span>
         </div>
 
+        {/* Per job, on "All" only */}
+        {breakdown.length > 1 && (
+          <div className="card card--breakdown">
+            <h3>{t("dashboard.breakdownTitle")}</h3>
+            <ul className="job-breakdown">
+              {breakdown.map(row => (
+                <li
+                  key={row.jobId ?? 'none'}
+                  className="job-breakdown__row"
+                  style={{ '--job-color': row.job ? jobColor(row.job) : NO_JOB_COLOR } as React.CSSProperties}
+                >
+                  <span className="job-breakdown__name">
+                    <span className="job-breakdown__dot" aria-hidden="true" />
+                    <span className="job-breakdown__label">{row.job ? jobDisplayName(row.job, t) : t("dashboard.noJob")}</span>
+                  </span>
+                  <span className="job-breakdown__value">
+                    {t("dashboard.breakdownRow", { hours: formatHM(row.hours), gross: formatMoney(row.gross) })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Job tab: hours instead of net / credits / deductions */}
+        {selectedJob && (
+          <div className="card card--hours">
+            <div className="card-icon">⏱</div>
+            <h3>{t("dashboard.hoursTitle")}</h3>
+            <FitText className="card-value">{formatHM(totalHours)}</FitText>
+            <span className="card-subtitle">{t("dashboard.hoursSubtitle")}</span>
+          </div>
+        )}
+
+        {!selectedJob && <>
         {/* Net */}
         <div className="card card--net">
           <div className="card-icon">✦</div>
@@ -136,6 +192,7 @@ const averageHourlyRate =
             {t("dashboard.deductionsSubtitle")}
           </span>
         </div>
+        </>}
 
         <div className='card card--averageHr'>
   <div className='card-icon'>📈</div>
@@ -152,6 +209,8 @@ const averageHourlyRate =
 </div>
 
       </div>
+
+      {selectedJob && <p className="dashboard-job-note">{t("dashboard.netAllOnly")}</p>}
     </div>
   )
 }

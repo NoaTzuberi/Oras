@@ -37,6 +37,8 @@
 
 }
 
+.card-header > div:empty { width: 32px; }
+
 .card-header h1 {
   font-family: 'Syne', sans-serif;
   font-size: 17px;
@@ -97,6 +99,7 @@
 .form-section:nth-child(2) { animation-delay: 130ms; }
 .form-section:nth-child(3) { animation-delay: 180ms; }
 .form-section:nth-child(4) { animation-delay: 230ms; }
+.form-section:nth-child(5) { animation-delay: 280ms; }
 
 @keyframes sectionIn {
   to { opacity: 1; transform: translateY(0) scale(1); }
@@ -149,16 +152,20 @@
   background: rgba(255,255,255,0.9);
 }
 
-.time-row {
-  display: flex;
+/* Start | arrow | end. Row 1 = labels, row 2 = inputs, so the arrow
+   centers on the inputs and both inputs get the same width. */
+.time-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  column-gap: 10px;
+  row-gap: 5px;
 }
 
-.time-block { flex: 1; display: flex; flex-direction: column; gap: 5px; }
 .time-label { font-family: 'DM Sans', sans-serif; font-size: 11px; color: #a5a8c8; }
-.time-divider { font-size: 16px; color: #c4b5fd; margin-top: 16px; flex-shrink: 0; }
+.time-divider { font-size: 16px; line-height: 1; color: #c4b5fd; }
 
+/* Start is on the right in Hebrew, so the arrow points left */
 html[dir="rtl"] .time-divider {
   display: inline-block;
   transform: scaleX(-1);
@@ -399,36 +406,13 @@ html[dir="rtl"] .time-divider {
     font-size: 13px;
   }
 
-  .form-input[type="date"] {
-    max-width: 320px;
-    align-self: center;
-    font-size: 12px;
-    padding: 8px;
-  }
-
+  .form-input[type="date"],
   .form-input[type="time"] {
-    max-width: 140px;
-    align-self: center;
-    font-size: 12px;
+    font-size: 13px;
     padding: 8px;
   }
 
-  .time-row {
-    gap: 8px;
-  }
-
-  .time-block .form-input {
-    padding: 8px;
-    font-size: 12px;
-  }
-
-  .time-divider {
-    margin-top: 14px;
-    font-size: 14px;
-  }
+  .time-grid { column-gap: 8px; }
+  .time-divider { font-size: 14px; }
 }
-.form-select {
-  direction: inherit;
-  text-align: start;
-  appearance: auto;
-}
+

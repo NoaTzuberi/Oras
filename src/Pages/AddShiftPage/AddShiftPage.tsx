@@ -1,22 +1,24 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BottomNavBar } from '../../components/BottomNavBar/BottomNavBar'
 import './AddShiftPage.css'
 import { useShifts } from '../../context/ShiftContext'
 import { InlineError } from '../../components/InlineError/InlineError'
-import { JobSelect } from '../../components/JobSelect/JobSelect'
+import { JobChips } from '../../components/JobChips/JobChips'
 import { ShabbatPaySection } from '../../components/ShabbatPaySection/ShabbatPaySection'
 import { jerusalemISODate } from '../../utils/dates'
 import { DEFAULT_GEONAMEID } from '../../utils/cities'
 import { jobToInput } from '../../utils/jobs'
 import { resolvePremium } from '../../utils/shabbat'
-import { computeShiftPay } from '../../utils/shiftPay'
+import { computeShiftPay, hasShabbatHours } from '../../utils/shiftPay'
+import { formatHM, formatMoney } from '../../utils/format'
 import { useShabbatTimes } from '../../hooks/useShabbatTimes'
 
 export const AddShiftPage = () => {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
+  const timeId = useId()
   const { addShift, updateJob, userProfile, jobs, lastUsedJobId } = useShifts()
 
   const [date, setDate] = useState(() => jerusalemISODate())
@@ -139,8 +141,8 @@ export const AddShiftPage = () => {
 
         <div className="card-body">
           <div className="form-section">
-            <label className="form-label">{t('shiftForm.job')}</label>
-            <JobSelect jobs={jobs} value={jobId} onChange={handleJobChange} className="form-input form-select" />
+            <span className="form-label">{t('shiftForm.job')}</span>
+            <JobChips jobs={jobs} value={jobId} onChange={handleJobChange} />
             {jobs.filter(j => !j.archived).length === 0 && (
               <p className="hint">{t('shiftForm.addJobHint')}</p>
             )}
@@ -166,25 +168,18 @@ export const AddShiftPage = () => {
 
           <div className="form-section">
             <label className="form-label">{t('shiftForm.shiftHoursLabel')}</label>
-            <div className="time-row">
-              <div className="time-block">
-                <span className="time-label">{t('shiftForm.start')}</span>
-                <input type="time" className="form-input"
-                value={startTime}
-                step="60"
-                inputMode='numeric'
+            {/* Labels on the first row, inputs on the second, so the arrow centers on the inputs */}
+            <div className="time-grid">
+              <label className="time-label" htmlFor={`${timeId}-start`}>{t('shiftForm.start')}</label>
+              <span />
+              <label className="time-label" htmlFor={`${timeId}-end`}>{t('shiftForm.end')}</label>
+              <input id={`${timeId}-start`} type="time" className="form-input" value={startTime} step="60" inputMode="numeric"
                 onChange={e => setStartTime(e.target.value)} />
-              </div>
-              <div className="time-divider">→</div>
-              <div className="time-block">
-                <span className="time-label">{t('shiftForm.end')}</span>
-                <input type="time" className="form-input" value={endTime}
-                step="60"
-                inputMode='numeric'
+              <span className="time-divider" aria-hidden="true">→</span>
+              <input id={`${timeId}-end`} type="time" className="form-input" value={endTime} step="60" inputMode="numeric"
                 onChange={e => setEndTime(e.target.value)} />
-              </div>
             </div>
-            {hours > 0 && <p className="hours-summary">{t('shiftForm.hoursWorked', { hours })}</p>}
+            {hours > 0 && <p className="hours-summary">{t('shiftForm.hoursWorked', { hours: formatHM(hours) })}</p>}
             {startTime && startTime === endTime && <p className="hint">{t('shiftForm.alertSameTimes')}</p>}
           </div>
 
@@ -214,6 +209,8 @@ export const AddShiftPage = () => {
               lookup={lookup}
               onRetry={retry}
               pay={pay}
+              shift={{ date, startTime, endTime }}
+              rate={hourlyRate ? parseFloat(hourlyRate) : null}
               salaryType={salaryType}
               geonameid={geonameid}
               job={selectedJob}
@@ -223,10 +220,11 @@ export const AddShiftPage = () => {
               answering={answeringPremium}
             />
 
-            {calculatedSalary !== null && (
+            {/* With Shabbat hours the total is at the bottom of the Shabbat card */}
+            {calculatedSalary !== null && !hasShabbatHours(pay) && (
               <div className="calc-result">
-                <span className="calc-label">{t('shiftForm.baseSalary')}</span>
-                <span className="calc-value">₪{calculatedSalary}</span>
+                <span className="calc-label">{t('shabbat.baseSalaryHours', { hours: formatHM(hours) })}</span>
+                <span className="calc-value">{formatMoney(calculatedSalary)}</span>
               </div>
             )}
           </div>
@@ -242,7 +240,7 @@ export const AddShiftPage = () => {
           {totalWithTips !== null && (
             <div className="total-summary">
               <span className="total-label">{t('shiftForm.totalIncome')}</span>
-              <span className="total-value">₪{totalWithTips}</span>
+              <span className="total-value">{formatMoney(totalWithTips)}</span>
               {parseFloat(tips) > 0 && (
                 <span className="total-breakdown">{t('shiftForm.breakdown', { salary: calculatedSalary, tips })}</span>
               )}

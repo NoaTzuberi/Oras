@@ -68,7 +68,7 @@ export const jerusalemDate = (at: Date): string => {
   return `${p.year}-${String(p.month).padStart(2, '0')}-${String(p.day).padStart(2, '0')}`
 }
 
-const jerusalemWeekday = (at: Date): string => jerusalemParts(at.getTime()).weekday
+export const jerusalemWeekday = (at: Date): string => jerusalemParts(at.getTime()).weekday
 
 /** Adds days to a "YYYY-MM-DD" calendar date. */
 export const addDays = (date: string, days: number): string => {

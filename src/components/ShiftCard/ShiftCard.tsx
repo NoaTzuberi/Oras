@@ -7,6 +7,7 @@ import { InlineError } from '../InlineError/InlineError'
 import { ShiftEditForm } from '../ShiftEditForm/ShiftEditForm'
 import { jobDisplayName } from '../../utils/jobs'
 import { parseLocalISODate } from '../../utils/localDate'
+import { jobColor, shade, withAlpha } from '../../utils/jobColors'
 
 // ── Component ─────────────────────────────────────
 
@@ -22,6 +23,17 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
 
   const locale = i18n.language === 'he' ? 'he-IL' : 'en-US'
 
+  // Archived jobs are still in `jobs`, so old shifts keep their color
+  const jobStyle = shiftJob
+    ? ({ '--job-color': jobColor(shiftJob), '--job-tint': withAlpha(jobColor(shiftJob), 0.12), '--job-text': shade(jobColor(shiftJob), 0.6) } as React.CSSProperties)
+    : undefined
+  const jobChip = shiftJob && (
+    <span className="job-tag" style={jobStyle}>
+      <span className="job-tag__dot" aria-hidden="true" />
+      <span className="job-tag__name">{jobDisplayName(shiftJob, t)}</span>
+    </span>
+  )
+
   // Local midnight: new Date('YYYY-MM-DD') is UTC, the previous day west of UTC
   const shiftDate = parseLocalISODate(shift.date)
   const formattedDate = shiftDate.toLocaleDateString(locale, {
@@ -36,7 +48,11 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
 
   return (
     <>
-      <div className="shift-card" style={style} onClick={() => setOpen(true)}>
+      <div
+        className={`shift-card${shiftJob ? ' shift-card--job' : ''}`}
+        style={{ ...style, ...jobStyle }}
+        onClick={() => setOpen(true)}
+      >
         {shift.isShabbatOrHoliday && (
           <div className="shift-card__holiday-dot">✡️</div>
         )}
@@ -53,6 +69,7 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
         <div className="shift-card__bottom">
           <span className="shift-card__total">₪{shift.totalEarnings}</span>
           <span className="shift-card__hours">{shift.hours} ש'</span>
+          {jobChip}
         </div>
       </div>
 
@@ -79,7 +96,7 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                   {shiftJob && (
                     <div className="shift-modal__row">
                       <span>{t('shiftForm.job')}</span>
-                      <span>{jobDisplayName(shiftJob, t)}</span>
+                      {jobChip}
                     </div>
                   )}
                   <div className="shift-modal__section">

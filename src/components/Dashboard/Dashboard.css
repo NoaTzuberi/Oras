@@ -206,3 +206,71 @@
     font-size: 34px;
   }
 }
+/* ── Job filter ─────────────────────────────────── */
+.dashboard-tabs {
+  max-width: 640px;
+  margin: 0 auto 20px;
+}
+
+/* Centered when it fits, scrolls from the start when it doesn't */
+.dashboard-tabs .job-tab:first-child { margin-inline-start: auto; }
+.dashboard-tabs .job-tab:last-child { margin-inline-end: auto; }
+
+.card--breakdown { text-align: start; cursor: default; }
+.card--breakdown h3 { text-align: center; }
+
+.job-breakdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.job-breakdown__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+}
+
+.job-breakdown__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #3730a3;
+  font-weight: 600;
+}
+
+.job-breakdown__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--job-color);
+  flex-shrink: 0;
+}
+
+.job-breakdown__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job-breakdown__value {
+  color: #6b6f94;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-job-note {
+  max-width: 500px;
+  margin: 20px auto 0;
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: #8b8faf;
+}

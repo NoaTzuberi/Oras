@@ -1,14 +1,16 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShifts, type Shift } from '../../context/ShiftContext'
 import { InlineError } from '../InlineError/InlineError'
-import { JobSelect } from '../JobSelect/JobSelect'
+import { JobChips } from '../JobChips/JobChips'
+import { Switch } from '../Switch/Switch'
 import { ShabbatPaySection } from '../ShabbatPaySection/ShabbatPaySection'
 import { useShabbatTimes } from '../../hooks/useShabbatTimes'
 import { DEFAULT_GEONAMEID } from '../../utils/cities'
 import { jobToInput } from '../../utils/jobs'
 import { resolvePremium } from '../../utils/shabbat'
-import { computeShiftPay } from '../../utils/shiftPay'
+import { computeShiftPay, hasShabbatHours } from '../../utils/shiftPay'
+import { formatHM, formatMoney } from '../../utils/format'
 import { shiftBaseRate } from '../../utils/shiftHelpers'
 import { initialPremiumOverride, isPreservedShift, preservedBasePay, recalcTriggered } from '../../utils/editShiftPay'
 import './ShiftEditForm.css'
@@ -16,7 +18,7 @@ import './ShiftEditForm.css'
 type Props = { shift: Shift; onSaved: () => void; onCancel: () => void }
 
 const round2 = (n: number) => Math.round(n * 100) / 100
-const money = (n: number | null | undefined) => (n == null ? '…' : `₪${n}`)
+const money = (n: number | null | undefined) => (n == null ? '…' : formatMoney(n))
 
 /**
  * Edit form. Same pay rules as the Add form, except that shifts saved before
@@ -26,6 +28,7 @@ const money = (n: number | null | undefined) => (n == null ? '…' : `₪${n}`)
  */
 export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
   const { t, i18n } = useTranslation()
+  const timeId = useId()
   const { updateShift, updateJob, jobs } = useShifts()
 
   const initialRate = (() => {
@@ -182,8 +185,8 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
       <div className="shift-modal__body shift-modal__edit-body">
         {/* Job */}
         <div className="edit-form-section">
-          <label className="edit-form-label">{t('shiftForm.job')}</label>
-          <JobSelect jobs={jobs} value={jobId} onChange={handleJobChange} className="edit-form-input" />
+          <span className="edit-form-label">{t('shiftForm.job')}</span>
+          <JobChips jobs={jobs} value={jobId} onChange={handleJobChange} />
         </div>
 
         {/* Date */}
@@ -200,18 +203,15 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
         {/* Times */}
         <div className="edit-form-section">
           <label className="edit-form-label">{t('shiftForm.shiftHoursLabel')}</label>
-          <div className="edit-time-row">
-            <div className="edit-time-block">
-              <span className="edit-time-label">{t('shiftForm.start')}</span>
-              <input type="time" className="edit-form-input" value={startTime} step="60" onChange={e => setStartTime(e.target.value)} />
-            </div>
-            <div className="edit-time-divider">←</div>
-            <div className="edit-time-block">
-              <span className="edit-time-label">{t('shiftForm.end')}</span>
-              <input type="time" className="edit-form-input" value={endTime} step="60" onChange={e => setEndTime(e.target.value)} />
-            </div>
+          <div className="edit-time-grid">
+            <label className="edit-time-label" htmlFor={`${timeId}-start`}>{t('shiftForm.start')}</label>
+            <span />
+            <label className="edit-time-label" htmlFor={`${timeId}-end`}>{t('shiftForm.end')}</label>
+            <input id={`${timeId}-start`} type="time" className="edit-form-input" value={startTime} step="60" onChange={e => setStartTime(e.target.value)} />
+            <span className="edit-time-divider" aria-hidden="true">→</span>
+            <input id={`${timeId}-end`} type="time" className="edit-form-input" value={endTime} step="60" onChange={e => setEndTime(e.target.value)} />
           </div>
-          {hours > 0 && <p className="edit-hours-summary">{t('shiftForm.hoursWorked', { hours })}</p>}
+          {hours > 0 && <p className="edit-hours-summary">{t('shiftForm.hoursWorked', { hours: formatHM(hours) })}</p>}
           {startTime && startTime === endTime && <p className="edit-hint">{t('shiftForm.alertSameTimes')}</p>}
         </div>
 
@@ -248,10 +248,7 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
               <p className="legacy-box__note">{legacyNote}</p>
 
               {salaryType === 'hourly' && shift.isShabbatOrHoliday && (
-                <label className="shabbat-override">
-                  <input type="checkbox" checked={premiumApplied} onChange={e => handlePremiumChange(e.target.checked)} />
-                  <span>{t('shabbat.applyPremium')}</span>
-                </label>
+                <Switch checked={premiumApplied} onChange={handlePremiumChange} label={t('shabbat.applyPremium')} />
               )}
 
               {!showRecalcPreview ? (
@@ -260,7 +257,7 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
                 </button>
               ) : lookup.status === 'error' ? (
                 <ShabbatPaySection
-                  lookup={lookup} onRetry={retry} pay={splitPay} salaryType={salaryType} geonameid={geonameid}
+                  lookup={lookup} onRetry={retry} pay={splitPay} shift={{ date, startTime, endTime }} rate={rate} salaryType={salaryType} geonameid={geonameid}
                   job={job} premiumApplied={premiumApplied} onPremiumChange={handlePremiumChange}
                   onAnswerJobPremium={answerJobPremium} answering={answeringPremium}
                 />
@@ -269,14 +266,14 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
                   <p className="recalc-preview__title">{t('shiftEdit.previewTitle')}</p>
                   <div className="recalc-preview__row">
                     <span>{t('shiftEdit.before')}</span>
-                    <span>{t('shiftEdit.beforeHours', { hours: shift.hours })} · {money(oldBase)}</span>
+                    <span>{t('shiftEdit.beforeHours', { hours: formatHM(shift.hours) })} · {money(oldBase)}</span>
                   </div>
                   <div className="recalc-preview__row">
                     <span>{t('shiftEdit.after')}</span>
                     <span>
                       {afterSplit
                         ? t(premiumApplied && salaryType === 'hourly' ? 'shabbat.breakdownPremium' : 'shabbat.breakdownNoPremium',
-                            { regular: afterSplit.regularHours, shabbat: afterSplit.shabbatHours })
+                            { regular: formatHM(afterSplit.regularHours), shabbat: formatHM(afterSplit.shabbatHours) })
                         : t('shabbat.loading')}
                       {' · '}{money(splitPay?.baseSalary)}
                     </span>
@@ -300,16 +297,17 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
             </div>
           ) : (
             <ShabbatPaySection
-              lookup={lookup} onRetry={retry} pay={splitPay} salaryType={salaryType} geonameid={geonameid}
+              lookup={lookup} onRetry={retry} pay={splitPay} shift={{ date, startTime, endTime }} rate={rate} salaryType={salaryType} geonameid={geonameid}
               job={job} premiumApplied={premiumApplied} onPremiumChange={handlePremiumChange}
               onAnswerJobPremium={answerJobPremium} answering={answeringPremium}
             />
           )}
 
-          {baseSalary !== null && (
+          {/* With Shabbat hours (new calculation) the total is at the bottom of the Shabbat card */}
+          {baseSalary !== null && !(mode === 'split' && hasShabbatHours(splitPay)) && (
             <div className="edit-calc-result">
-              <span className="edit-calc-label">{t('shiftForm.baseSalary')}</span>
-              <span className="edit-calc-value">₪{baseSalary}</span>
+              <span className="edit-calc-label">{t('shabbat.baseSalaryHours', { hours: formatHM(hours) })}</span>
+              <span className="edit-calc-value">{formatMoney(baseSalary)}</span>
             </div>
           )}
         </div>
@@ -326,7 +324,7 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
         {totalWithTips !== null && (
           <div className="edit-total-summary">
             <span className="edit-total-label">{t('shiftForm.totalIncome')}</span>
-            <span className="edit-total-value">₪{totalWithTips}</span>
+            <span className="edit-total-value">{formatMoney(totalWithTips)}</span>
           </div>
         )}
 

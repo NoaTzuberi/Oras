@@ -1,0 +1,64 @@
+.job-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Many jobs: one scrolling row */
+.job-chips--scroll {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* room for the focus ring, which overflow would otherwise clip */
+  padding: 3px;
+  margin: -3px;
+}
+
+.job-chips--scroll::-webkit-scrollbar { display: none; }
+
+.job-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--chip-border);
+  background: var(--chip-tint);
+  color: #2e3157;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms var(--ease-out), border-color 150ms var(--ease-out), color 150ms var(--ease-out), transform 100ms var(--ease-out);
+}
+
+.job-chip:active { transform: scale(0.96); }
+.job-chip:focus-visible { outline: 2px solid var(--chip-color); outline-offset: 2px; }
+
+.job-chip[aria-checked="true"] {
+  background: var(--chip-fill);
+  border-color: var(--chip-fill);
+  color: #fff;
+  font-weight: 600;
+}
+
+.job-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chip-color);
+  flex-shrink: 0;
+}
+
+.job-chip__check { width: 14px; height: 14px; flex-shrink: 0; }
+
+.job-chip__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job-chip--none { color: #4b5563; }

@@ -51,7 +51,14 @@ const resources = {
         deductionsTitle: "ניכויים",
         deductionsSubtitle: "מס + ביטוח לאומי + בריאות + פנסיה",
         AverageTitle: "ממוצע שעתי",
-        AverageSubtitle: "ממוצע הכנסה לשעה"
+        AverageSubtitle: "ממוצע הכנסה לשעה",
+        hoursTitle: "שעות עבודה",
+        hoursSubtitle: "סה״כ שעות החודש",
+        jobGrossSubtitle: "השתכרות החודש ב{{job}}",
+        breakdownTitle: "לפי עבודה",
+        breakdownRow: "{{hours}} ש׳ · {{gross}}",
+        noJob: "ללא עבודה",
+        netAllOnly: "נטו וניכויים מוצגים רק ב״הכל״, כי הם תלויים בסך ההכנסה מכל העבודות"
       },
 
       auth: {
@@ -163,9 +170,6 @@ const resources = {
       shabbat: {
         breakdownPremium: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ שבת ×1.5",
         breakdownNoPremium: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ שבת (ללא תוספת)",
-        breakdownInfo: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ בשבת",
-        dailyTotalInfo: "לידיעה בלבד, הסכום היומי לא משתנה. זמני שבת: {{city}}",
-        timesFor: "זמני שבת: {{city}}",
         loading: "טוען זמני שבת...",
         loadFailed: "לא הצלחנו לטעון את זמני השבת — הקש לנסות שוב",
         loadFailedSub: "אפשר לשמור בכל זאת. המשמרת תסומן לבדיקה חוזרת ותחושב בינתיים לפי שכר רגיל.",
@@ -174,9 +178,28 @@ const resources = {
         askJobPremiumSub: "התשובה תישמר לעבודה הזו. אפשר לשנות בהגדרות.",
         yes: "כן",
         no: "לא",
-        applyPremium: "תשלום 150% על שעות השבת במשמרת הזו",
+        applyPremium: "המעסיק משלם 150% על שעות השבת",
         unverified: "זמני השבת לא אומתו",
-        savedBreakdown: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ שבת"
+        savedBreakdown: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ שבת",
+        cardTitle: "שעות שבת",
+        windowTimes: "{{city}} · {{from}} ← {{to}}",
+        boundary: "{{day}} {{time}}",
+        weekdays: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"],
+        saturdayNight: "מוצ״ש",
+        tickIn: "כניסת שבת",
+        tickOut: "צאת שבת",
+        regular: "רגילות",
+        shabbatPremium: "שבת ×1.5",
+        shabbatNoPremium: "שבת (ללא תוספת)",
+        hoursValue: "{{hours}} ש׳",
+        dailyTotalSplit: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ שבת — הסכום היומי לא מפוצל",
+        timelineLabel: "משמרת {{start}}–{{end}}: {{regular}} ש׳ רגילות, {{shabbat}} ש׳ שבת",
+        baseSalaryHours: "שכר בסיס · {{hours}} ש׳"
+      },
+
+      jobFilter: {
+        label: "סינון לפי עבודה",
+        all: "הכל"
       },
 
       shiftEdit: {
@@ -347,7 +370,14 @@ const resources = {
         deductionsTitle: "Deductions",
         deductionsSubtitle: "Tax + insurance + pension",
         AverageTitle: "Hourly Average",
-        AverageSubtitle: "Average hourly earnings"
+        AverageSubtitle: "Average hourly earnings",
+        hoursTitle: "Hours Worked",
+        hoursSubtitle: "Total hours this month",
+        jobGrossSubtitle: "Earned this month at {{job}}",
+        breakdownTitle: "By job",
+        breakdownRow: "{{hours}} h · {{gross}}",
+        noJob: "No job",
+        netAllOnly: "Net and deductions show on “All” only, since they depend on your combined income"
 
       },
 
@@ -458,11 +488,8 @@ const resources = {
       },
 
       shabbat: {
-        breakdownPremium: "{{regular}}h regular · {{shabbat}}h Shabbat ×1.5",
-        breakdownNoPremium: "{{regular}}h regular · {{shabbat}}h Shabbat (no premium)",
-        breakdownInfo: "{{regular}}h regular · {{shabbat}}h during Shabbat",
-        dailyTotalInfo: "Info only, the daily total isn't changed. Shabbat times: {{city}}",
-        timesFor: "Shabbat times: {{city}}",
+        breakdownPremium: "{{regular}} h regular · {{shabbat}} h Shabbat ×1.5",
+        breakdownNoPremium: "{{regular}} h regular · {{shabbat}} h Shabbat (no premium)",
         loading: "Loading Shabbat times...",
         loadFailed: "Couldn't load Shabbat times — tap to retry",
         loadFailedSub: "You can still save. The shift will be marked for re-checking and paid at the regular rate until then.",
@@ -471,9 +498,28 @@ const resources = {
         askJobPremiumSub: "Your answer is saved for this job. You can change it in Settings.",
         yes: "Yes",
         no: "No",
-        applyPremium: "Pay 150% for the Shabbat hours of this shift",
+        applyPremium: "Employer pays 150% for Shabbat hours",
         unverified: "Shabbat times not verified",
-        savedBreakdown: "{{regular}}h regular · {{shabbat}}h Shabbat"
+        savedBreakdown: "{{regular}}h regular · {{shabbat}}h Shabbat",
+        cardTitle: "Shabbat hours",
+        windowTimes: "{{city}} · {{from}} → {{to}}",
+        boundary: "{{day}} {{time}}",
+        weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+        saturdayNight: "Sat",
+        tickIn: "Shabbat starts",
+        tickOut: "Shabbat ends",
+        regular: "Regular",
+        shabbatPremium: "Shabbat ×1.5",
+        shabbatNoPremium: "Shabbat (no premium)",
+        hoursValue: "{{hours}} h",
+        dailyTotalSplit: "{{regular}} h regular · {{shabbat}} h Shabbat — daily total isn't split",
+        timelineLabel: "Shift {{start}}–{{end}}: {{regular}} h regular, {{shabbat}} h Shabbat",
+        baseSalaryHours: "Base salary · {{hours}} h"
+      },
+
+      jobFilter: {
+        label: "Filter by job",
+        all: "All"
       },
 
       shiftEdit: {
@@ -485,7 +531,7 @@ const resources = {
         previewTitle: "Recalculation preview",
         before: "Before",
         after: "After",
-        beforeHours: "{{hours}}h",
+        beforeHours: "{{hours}} h",
         confirmRecalc: "Confirm recalculation",
         previewHint: "Nothing is saved until you tap Save changes.",
         switchNotice: "This shift will be recalculated with the new Shabbat hours. Pay: {{from}} → {{to}}",

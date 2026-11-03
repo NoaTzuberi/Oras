@@ -1,20 +1,155 @@
-.shabbat-box {
+/* ── Card ─────────────────────────────────────── */
+.shabbat-card {
+  --shabbat-accent: #7c3aed;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(139, 92, 246, 0.08);
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(139, 92, 246, 0.06);
   border: 1px solid rgba(139, 92, 246, 0.2);
+  font-family: 'DM Sans', sans-serif;
 }
 
-.shabbat-breakdown {
+.shabbat-card__header { display: flex; align-items: flex-start; gap: 10px; }
+.shabbat-card__icon { font-size: 18px; line-height: 1.2; flex-shrink: 0; }
+.shabbat-card__heading { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+.shabbat-card__title {
   margin: 0;
-  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #3730a3;
+}
+
+.shabbat-card__times {
+  margin: 0;
+  font-size: 12px;
+  color: #6b6f94;
+}
+
+.shabbat-card__info {
+  margin: 0;
   font-size: 13px;
   font-weight: 600;
   color: #4c1d95;
-  unicode-bidi: plaintext;
+}
+
+/* ── Timeline ─────────────────────────────────── */
+.shabbat-timeline { display: flex; flex-direction: column; gap: 4px; }
+
+.shabbat-timeline__ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b6f94;
+  font-variant-numeric: tabular-nums;
+}
+
+.shabbat-timeline__bar {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.35);
+  overflow: hidden;
+}
+
+.shabbat-timeline__seg { position: absolute; top: 0; bottom: 0; }
+.shabbat-timeline__seg--regular { background: rgba(148, 163, 184, 0.35); }
+.shabbat-timeline__seg--shabbat { background: #8b5cf6; }
+
+.shabbat-timeline__tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-inline-start: -1px;
+  background: #fff;
+}
+
+.shabbat-timeline__labels { position: relative; height: 14px; }
+
+.shabbat-timeline__label {
+  position: absolute;
+  top: 0;
+  font-size: 10px;
+  color: var(--shabbat-accent);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+html[dir="rtl"] .shabbat-timeline__label { transform: translateX(50%); }
+.shabbat-timeline__label.is-start,
+html[dir="rtl"] .shabbat-timeline__label.is-start { transform: none; }
+.shabbat-timeline__label.is-end { transform: translateX(-100%); }
+html[dir="rtl"] .shabbat-timeline__label.is-end { transform: translateX(100%); }
+
+/* ── Stats ────────────────────────────────────── */
+.shabbat-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+@media (max-width: 340px) {
+  .shabbat-stats { grid-template-columns: 1fr; }
+}
+
+.shabbat-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  min-width: 0;
+}
+
+.shabbat-stat--shabbat {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.shabbat-stat__label { font-size: 11px; color: #6b6f94; }
+.shabbat-stat--shabbat .shabbat-stat__label { color: #6d28d9; font-weight: 600; }
+
+.shabbat-stat__hours {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #3730a3;
+  font-variant-numeric: tabular-nums;
+}
+
+.shabbat-stat__money {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4c1d95;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Total ────────────────────────────────────── */
+.shabbat-card__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.shabbat-card__total-label { font-size: 12px; color: #6b6f94; }
+
+.shabbat-card__total-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #4f46e5;
+  font-variant-numeric: tabular-nums;
 }
 
 .shabbat-hint {
@@ -23,18 +158,6 @@
   font-size: 11px;
   color: #8b8faf;
 }
-
-.shabbat-override {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13px;
-  color: #3730a3;
-  cursor: pointer;
-}
-
-.shabbat-override input { accent-color: #7c3aed; width: 16px; height: 16px; }
 
 .shabbat-question { display: flex; flex-direction: column; gap: 6px; }
 

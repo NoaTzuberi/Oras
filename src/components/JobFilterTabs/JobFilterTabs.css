@@ -1,0 +1,58 @@
+.job-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 3px;
+  margin: -3px;
+}
+
+.job-tabs::-webkit-scrollbar { display: none; }
+
+.job-tab {
+  --tab-color: #6366f1;
+  --tab-fill: #4f46e5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  max-width: 180px;
+  min-height: 34px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #3730a3;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms var(--ease-out), color 150ms var(--ease-out);
+}
+
+.job-tab:focus-visible { outline: 2px solid var(--tab-color); outline-offset: 2px; }
+
+.job-tab[aria-pressed="true"] {
+  background: var(--tab-fill);
+  border-color: var(--tab-fill);
+  color: #fff;
+  font-weight: 600;
+}
+
+.job-tab__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tab-color);
+  flex-shrink: 0;
+}
+
+.job-tab[aria-pressed="true"] .job-tab__dot { background: #fff; }
+
+.job-tab__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

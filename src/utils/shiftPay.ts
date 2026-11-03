@@ -64,3 +64,7 @@ export const computeShiftPay = (input: ShiftPayInput): ShiftPayResult | null => 
     isShabbatOrHoliday: hasShabbatHours || (input.shabbat.status === 'ok' && input.shabbat.isYomTov),
   }
 }
+
+/** True when the Shabbat card replaces the plain base salary row. */
+export const hasShabbatHours = (pay: ShiftPayResult | null): boolean =>
+  (pay?.split?.shabbatHours ?? 0) > 0
