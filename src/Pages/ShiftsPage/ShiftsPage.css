@@ -6,7 +6,7 @@
 }
 
 .shifts-content {
-  padding: 20px 16px 100px;
+  padding: 20px 16px var(--bottom-nav-space);
   display: flex;
   flex-direction: column;
   gap: 14px;

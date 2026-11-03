@@ -11,6 +11,7 @@ import { resolveParentColumn, type Child } from '../../tax/children'
 import { taxConfigFor } from '../../tax'
 import { InlineError } from '../../components/InlineError/InlineError'
 import { JobsManager } from '../../components/JobsManager/JobsManager'
+import { WhatsNewModal } from '../../components/WhatsNewModal/WhatsNewModal'
 import { parseLocalISODate, toLocalISODate } from '../../utils/localDate'
 
 export const SettingsPage = () => {
@@ -24,6 +25,8 @@ export const SettingsPage = () => {
   const [saveError, setSaveError] = useState('')
   const [confirmError, setConfirmError] = useState('')
   const [confirming, setConfirming] = useState(false)
+  // Reopened from here; doesn't touch the "seen" flag
+  const [showWhatsNew, setShowWhatsNew] = useState(false)
 
   const today = periodOf(new Date())
   const currentYear = today.year
@@ -330,6 +333,11 @@ export const SettingsPage = () => {
         >
           {saving ? t('shiftForm.saving') : saved ? t('settings.saved') : t('settings.save')}
         </button>
+
+        <button type="button" className="whats-new-link" onClick={() => setShowWhatsNew(true)}>
+          ✨ {t('whatsNew.reopen')}
+        </button>
+        {showWhatsNew && <WhatsNewModal onClose={() => setShowWhatsNew(false)} />}
 
       </div>
       <BottomNavBar />

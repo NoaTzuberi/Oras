@@ -230,7 +230,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
+  /* Clear of the notch and the home indicator */
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
   animation: backdropIn 200ms var(--ease-out);
 }
 
@@ -242,8 +244,11 @@
 .shift-modal {
   width: 100%;
   max-width: 480px;
-  max-height: 90vh;
+  /* The backdrop's padding already keeps it inside the visible area */
+  max-height: 100%;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
   background: linear-gradient(160deg, rgba(255,255,255,0.96), rgba(255,255,255,0.88));
   backdrop-filter: blur(32px);
   -webkit-backdrop-filter: blur(32px);
@@ -469,21 +474,63 @@ html[dir="ltr"] .shift-modal__time-arrow {
 }
 
 /* ── Edit form inside modal ──────────────────────── */
-.shift-modal__edit-body {
+/* Header and footer stay put; only the body scrolls */
+.shift-modal--edit {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
-  max-height: 65vh;
-  padding-bottom: 10px;
+  overflow: hidden;
 }
+
+.shift-modal--edit .shift-modal__header { flex: none; }
+
+.shift-modal__body.shift-modal__edit-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+}
+
+.shift-modal__footer {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px 16px;
+  border-top: 1px solid rgba(196,181,253,0.25);
+  background: rgba(255,255,255,0.92);
+}
+
+.shift-modal__footer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-cancel-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1.5px solid rgba(139, 92, 246, 0.35);
+  background: rgba(255, 255, 255, 0.8);
+  color: #6d28d9;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.edit-cancel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* Same card as the Add form's sections */
 .edit-form-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px 16px;
+  padding: 16px;
   background: rgba(255, 255, 255, 0.5);
   border: 1px solid rgba(196, 181, 253, 0.2);
   border-radius: 16px;
@@ -513,12 +560,22 @@ html[dir="ltr"] .shift-modal__time-arrow {
   transition: border-color 0.2s;
 }
 
-/* Same as the Add form: times and dates always read left to right */
-.edit-form-input[type="time"],
-.edit-form-input[type="date"] {
+/* Same as the Add form: times always read left to right. iOS Safari gives
+   native time inputs an intrinsic min-width that overflows narrow cards. */
+.edit-form-input[type="time"] {
   direction: ltr;
   unicode-bidi: isolate;
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  min-width: 0;
+  min-height: 46px;
+  text-align: start;
 }
+
+.edit-form-input[type="time"]::-webkit-date-and-time-value { text-align: start; }
+
+.edit-time-grid > * { min-width: 0; }
 
 .edit-form-input:focus {
   border-color: rgba(99, 102, 241, 0.5);
@@ -725,7 +782,7 @@ html[dir="rtl"] .edit-time-divider {
 }
 
 .edit-save-btn {
-  width: 100%;
+  flex: 2;
   padding: 14px;
   background: linear-gradient(135deg, #4f46e5, #7c3aed);
   color: #fff;
@@ -736,7 +793,6 @@ html[dir="rtl"] .edit-time-divider {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  margin-top: 4px;
 }
 
 .edit-save-btn:hover {
@@ -759,3 +815,9 @@ html[dir="rtl"] .edit-time-divider {
 }
 
 .shift-modal__unverified { color: #b45309; }
+
+/* Very narrow phones: keep the whole time visible in the edit form */
+@media (max-width: 360px) {
+  .edit-form-input[type="time"] { padding-inline: 8px; }
+  .edit-form-input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
+}

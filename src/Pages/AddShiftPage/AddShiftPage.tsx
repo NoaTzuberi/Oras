@@ -6,6 +6,7 @@ import './AddShiftPage.css'
 import { useShifts } from '../../context/ShiftContext'
 import { InlineError } from '../../components/InlineError/InlineError'
 import { JobChips } from '../../components/JobChips/JobChips'
+import { DateField } from '../../components/DateField/DateField'
 import { ShabbatPaySection } from '../../components/ShabbatPaySection/ShabbatPaySection'
 import { jerusalemISODate } from '../../utils/dates'
 import { DEFAULT_GEONAMEID } from '../../utils/cities'
@@ -149,16 +150,8 @@ export const AddShiftPage = () => {
           </div>
 
           <div className="form-section">
-            <label className="form-label">{t('shiftForm.date')}</label>
-            <input
-              type="date"
-              className="form-input"
-              value={date}
-              onChange={(e) => {
-                setDate(e.target.value)
-                e.target.blur()
-              }}
-            />
+            <label className="form-label" htmlFor={`${timeId}-date`}>{t('shiftForm.date')}</label>
+            <DateField id={`${timeId}-date`} className="form-input" value={date} onChange={setDate} />
             {holidayNames.map(h => (
               <div key={h.title} className="special-day-badge">
                 ✡️ {i18n.language === 'he' ? h.hebrew : h.title} — {t('shiftForm.holidaySuffix')}

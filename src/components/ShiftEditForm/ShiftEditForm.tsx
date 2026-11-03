@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useShifts, type Shift } from '../../context/ShiftContext'
 import { InlineError } from '../InlineError/InlineError'
 import { JobChips } from '../JobChips/JobChips'
+import { DateField } from '../DateField/DateField'
 import { Switch } from '../Switch/Switch'
 import { ShabbatPaySection } from '../ShabbatPaySection/ShabbatPaySection'
 import { useShabbatTimes } from '../../hooks/useShabbatTimes'
@@ -191,8 +192,8 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
 
         {/* Date */}
         <div className="edit-form-section">
-          <label className="edit-form-label">{t('shiftForm.date')}</label>
-          <input type="date" className="edit-form-input" value={date} onChange={e => setDate(e.target.value)} />
+          <label className="edit-form-label" htmlFor={`${timeId}-date`}>{t('shiftForm.date')}</label>
+          <DateField id={`${timeId}-date`} className="edit-form-input" value={date} onChange={setDate} />
           {holidayNames.map(h => (
             <div key={h.title} className="edit-special-badge">
               ✡️ {i18n.language === 'he' ? h.hebrew : h.title} — {t('shiftForm.holidaySuffix')}
@@ -338,11 +339,19 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
           </div>
         )}
 
-        {error && <InlineError>{error}</InlineError>}
+      </div>
 
-        <button className="edit-save-btn" onClick={handleSave} disabled={saving}>
-          {saving ? t('shiftForm.saving') : t('shiftForm.saveChanges')}
-        </button>
+      {/* Always visible: the body above scrolls */}
+      <div className="shift-modal__footer">
+        {error && <InlineError>{error}</InlineError>}
+        <div className="shift-modal__footer-actions">
+          <button type="button" className="edit-cancel-btn" onClick={onCancel} disabled={saving}>
+            {t('jobs.cancel')}
+          </button>
+          <button type="button" className="edit-save-btn" onClick={handleSave} disabled={saving}>
+            {saving ? t('shiftForm.saving') : t('shiftForm.saveChanges')}
+          </button>
+        </div>
       </div>
     </>
   )

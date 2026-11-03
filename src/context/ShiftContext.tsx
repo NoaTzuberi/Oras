@@ -81,6 +81,9 @@ type ShiftsContextType = {
   setUserProfile: (profile: UserProfile) => Promise<void>
   taxInfo: TaxInfo
   loadingData: boolean
+  /** The one-time "What's New" modal should show (see the whats_new_seen_at migration) */
+  whatsNewPending: boolean
+  markWhatsNewSeen: () => Promise<void>
   filteredShifts: Shift[]
 selectedMonth: Date
 setSelectedMonth: React.Dispatch<React.SetStateAction<Date>>
@@ -233,6 +236,8 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
   const [jobs, setJobs] = useState<Job[]>([])
   const [storedLastJobId, setStoredLastJobId] = useState<string | null>(() => readLastJobId())
   const [userProfile, setUserProfileState] = useState<UserProfile>(defaultProfile)
+  // undefined = unknown (not loaded, or the column doesn't exist yet): don't show
+  const [whatsNewSeenAt, setWhatsNewSeenAt] = useState<string | null | undefined>(undefined)
   const [loadingData, setLoadingData] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState(new Date())
 
@@ -311,6 +316,7 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
           isPriorityArea: profileData.is_priority_area ?? false,
           defaultHourlyRate: profileData.default_hourly_rate ?? null,
         })
+        setWhatsNewSeenAt('whats_new_seen_at' in profileData ? profileData.whats_new_seen_at : undefined)
       }
     } catch (e) {
       console.error('Error loading data:', e)
@@ -471,6 +477,25 @@ const filteredShifts = shifts.filter(shift => {
 })
 
   const taxInfo = calcTaxInfo(userProfile, filteredShifts, jobs, periodOf(selectedMonth))
+
+  // Only for users who already had shifts; the migration marks everyone else as seen
+  const whatsNewPending = !loadingData && whatsNewSeenAt === null && shifts.length > 0
+
+  /** Hides it right away; if saving fails it may show again on another visit. */
+  const markWhatsNewSeen = async () => {
+    const now = new Date().toISOString()
+    setWhatsNewSeenAt(now)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ whats_new_seen_at: now })
+      .eq('id', user.id)
+    if (error) {
+      console.error('Error saving whats_new_seen_at:', error)
+      reportError(error)
+    }
+  }
   return (
   <ShiftsContext.Provider
     value={{
@@ -494,6 +519,8 @@ const filteredShifts = shifts.filter(shift => {
 
       taxInfo,
       loadingData,
+      whatsNewPending,
+      markWhatsNewSeen,
     }}
   >
     {children}

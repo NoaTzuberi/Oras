@@ -7,18 +7,18 @@ type Props = { checked: boolean; onChange: (checked: boolean) => void; label: st
 export const Switch = ({ checked, onChange, label, disabled }: Props) => {
   const id = useId()
   return (
-    <div className="switch-row">
-      <label className="switch-row__label" htmlFor={id}>{label}</label>
+    <div className="pay-switch-row">
+      <label className="pay-switch-row__label" htmlFor={id}>{label}</label>
       <button
         id={id}
         type="button"
         role="switch"
         aria-checked={checked}
-        className="switch"
+        className="pay-switch"
         disabled={disabled}
         onClick={() => onChange(!checked)}
       >
-        <span className="switch__thumb" />
+        <span className="pay-switch__thumb" />
       </button>
     </div>
   )

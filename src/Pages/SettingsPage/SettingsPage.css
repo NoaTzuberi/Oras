@@ -9,13 +9,16 @@
 }
 
 .settings-content {
-  padding: 20px 16px 100px;
+  padding: 20px 16px var(--bottom-nav-space);
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 14px;
   width: 100%;
   max-width: 800px;
+  /* Flex item of .settings-page: without this its min-content (inputs,
+     selects) can make it wider than the screen */
+  min-width: 0;
   box-sizing: border-box;
 }
 
@@ -110,6 +113,8 @@
   transition: border-color 150ms var(--ease-out);
   box-sizing: border-box;
   width: 100%;
+  /* Inputs and selects have an intrinsic width; let them shrink in flex rows */
+  min-width: 0;
 }
 
 .settings-input:focus { border-color: #8b5cf6; }
@@ -309,6 +314,7 @@
 
 .toggle-btn {
   flex: 1;
+  min-width: 0;
   padding: 9px 8px;
   border-radius: 12px;
   border: 1.5px solid rgba(196,181,253,0.3);
@@ -537,3 +543,23 @@
 .settings-notice .add-child-btn { align-self: flex-start; }
 
 .settings-input--year { max-width: 110px; }
+
+.whats-new-link {
+  align-self: center;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: #6d28d9;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* Phones: iOS Safari zooms into focused inputs below 16px and stays zoomed,
+   which pushes the cards and the language button off the right edge */
+@media (max-width: 600px) {
+  .settings-input { font-size: 16px; }
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import './ShiftCard.css'
 import type { Shift } from '../../context/ShiftContext';
 import { useShifts } from "../../context/ShiftContext"
@@ -73,9 +74,10 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
         </div>
       </div>
 
-      {open && (
+      {/* In <body>, above the page's stacking context and the bottom nav */}
+      {open && createPortal(
         <div className="shift-modal-backdrop" onClick={() => { setOpen(false); setEditMode(false) }}>
-          <div className="shift-modal" onClick={e => e.stopPropagation()}>
+          <div className={`shift-modal${editMode ? ' shift-modal--edit' : ''}`} onClick={e => e.stopPropagation()}>
 
             {!editMode ? (
               // ── View mode ──────────────────────────────
@@ -188,7 +190,8 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
               />
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )

@@ -6,7 +6,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (loading) return (
     <div style={{
-      minHeight: '100vh', display: 'flex',
+      minHeight: '100dvh', display: 'flex',
       alignItems: 'center', justifyContent: 'center'
     }}>
       <div style={{

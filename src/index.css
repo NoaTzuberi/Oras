@@ -10,8 +10,12 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100%;
-  overflow-x: hidden;
+}
 
+/* Space every page leaves for the fixed bottom nav (56px on phones, 70px
+   on larger screens, plus the home indicator area) */
+:root {
+  --bottom-nav-space: calc(100px + env(safe-area-inset-bottom));
 }
 
 .number, .shift-card__total {

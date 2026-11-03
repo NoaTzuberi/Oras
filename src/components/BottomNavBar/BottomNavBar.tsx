@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import './BottomNavBar.css'
 import { FiHome, FiList, FiBarChart2, FiSettings, FiPlus } from 'react-icons/fi'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -10,8 +11,10 @@ export const BottomNavBar = () => {
   const { t } = useTranslation()
 
 
-  return (
-    <div className="bottom-nav">
+  // Rendered into <body>: an ancestor with transform / filter / backdrop-filter
+  // (page animations, glass cards) would make position: fixed relative to it.
+  return createPortal(
+    <nav className="bottom-nav">
       <button className={`nav-item ${path === '/' ? 'nav-item--active' : ''}`} onClick={() => navigate('/')}>
         <FiHome /><span>{t("nav.home")}</span>
       </button>
@@ -27,6 +30,7 @@ export const BottomNavBar = () => {
       <button className={`nav-item ${path === '/settings' ? 'nav-item--active' : ''}`} onClick={() => navigate('/settings')}>
         <FiSettings /><span>{t("nav.settings")}</span>
       </button>
-    </div>
+    </nav>,
+    document.body,
   )
 }

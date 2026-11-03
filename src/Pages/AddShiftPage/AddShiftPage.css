@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px 100px;
+  padding: 24px 16px var(--bottom-nav-space);
   position: relative;
   z-index: 10;
   box-sizing: border-box;
@@ -71,7 +71,7 @@
   padding: 16px 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   max-height: 75vh;
   overflow-y: auto;
 
@@ -85,7 +85,7 @@
   background: rgba(255,255,255,0.5);
   border: 1px solid rgba(196,181,253,0.2);
   border-radius: 16px;
-  padding: 14px 16px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -135,12 +135,21 @@
   unicode-bidi: isolate;
 }
 
+/* iOS Safari gives native time inputs an intrinsic min-width that
+   overflows narrow cards; drop the native sizing and fill the grid cell. */
 .form-input[type="time"] {
   direction: ltr;
-  text-align: left;
+  text-align: start;
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  min-height: 40px;
 }
 
-.form-input[type="date"]::-webkit-calendar-picker-indicator,
+.form-input[type="time"]::-webkit-date-and-time-value { text-align: start; }
+
+.time-grid > * { min-width: 0; }
+
 .form-input[type="time"]::-webkit-calendar-picker-indicator {
   margin-inline-start: 4px;
   margin-inline-end: 0;
@@ -389,30 +398,34 @@ html[dir="rtl"] .time-divider {
   .card-body {
     max-height: none;
     overflow-y: visible;
-    padding: 20px 16px calc(110px + env(safe-area-inset-bottom));
-    gap: 18px;
-  }
-
-  .form-section {
-    padding: 18px;
+    padding: 16px 16px var(--bottom-nav-space);
+    gap: 14px;
   }
 
   .total-summary {
     padding: 20px;
   }
 
+  /* 16px: iOS Safari zooms into focused inputs below 16px and stays zoomed */
   .form-input {
     padding: 8px 10px;
-    font-size: 13px;
+    font-size: 16px;
   }
 
-  .form-input[type="date"],
   .form-input[type="time"] {
-    font-size: 13px;
+    font-size: 16px;
     padding: 8px;
+    min-height: 40px;
   }
 
   .time-grid { column-gap: 8px; }
   .time-divider { font-size: 14px; }
 }
 
+
+/* Very narrow phones: the time fields are ~110px wide; drop the picker icon
+   (tapping the field opens the picker anyway) so the value isn't clipped */
+@media (max-width: 360px) {
+  .form-input[type="time"] { padding-inline: 6px; }
+  .form-input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
+}

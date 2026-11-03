@@ -16,7 +16,7 @@ const ResetPasswordPage = lazy(() => import('./Pages/ResetPasswordPage/ResetPass
 
 const RouteFallback = () => (
   <div style={{
-    minHeight: '100vh', display: 'flex',
+    minHeight: '100dvh', display: 'flex',
     alignItems: 'center', justifyContent: 'center'
   }}>
     <div style={{

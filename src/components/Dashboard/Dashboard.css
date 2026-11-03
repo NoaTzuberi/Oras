@@ -1,7 +1,7 @@
 .dashboard {
   margin-top: 40px;
   padding: 20px;
-  padding-bottom: 100px;
+  padding-bottom: var(--bottom-nav-space);
   position: relative;
   z-index: 2;
   

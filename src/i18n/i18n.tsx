@@ -41,9 +41,6 @@ const resources = {
         netTitle: "נטו חודשי",
         netSubtitle: "אחרי ניכויים",
         netSubtitleApprox: "הערכה לפי שיעורי {{year}}",
-        taxUpdateTitle: "עדכנו את חישוב הנטו",
-        taxUpdateBody: "עדכנו את חישוב הנטו כך שיכלול פנסיה ואת כללי המס של 2026. המשמרות השמורות שלך לא השתנו.",
-        taxUpdateDismiss: "הבנתי",
 
         creditsTitle: "נקודות זיכוי",
         creditsSubtitle: "חסכון ₪{{value}} לחודש",
@@ -200,6 +197,36 @@ const resources = {
       jobFilter: {
         label: "סינון לפי עבודה",
         all: "הכל"
+      },
+
+      whatsNew: {
+        title: "✨ Oras התעדכנה!",
+        items: [
+          {
+            icon: "🕯",
+            title: "שעות שבת מחושבות אוטומטית",
+            body: "המערכת יודעת עכשיו מתי שבת נכנסת ויוצאת לפי העיר שלך, ומחשבת 150% רק על השעות שבאמת נפלו בשבת. משמרת שמתחילה בשישי בצהריים ונגמרת בלילה מתחלקת אוטומטית לשעות רגילות ושעות שבת."
+          },
+          {
+            icon: "💼",
+            title: "כמה עבודות, כל אחת בצבע משלה",
+            body: "עובדים ביותר ממקום אחד? אפשר להוסיף עבודות בהגדרות, לכל אחת תעריף, עיר וצבע, ולסנן משמרות ונתונים לפי עבודה."
+          },
+          {
+            icon: "🧾",
+            title: "חישוב נטו מעודכן ל-2026",
+            body: "עדכנו את מדרגות המס החדשות, את שיעורי ביטוח לאומי ובריאות, והוספנו הפרשה לפנסיה. הנטו שתראו עכשיו קרוב יותר למה שמופיע בתלוש."
+          },
+          {
+            icon: "👶",
+            title: "נקודות זיכוי לילדים",
+            body: "נקודות הזיכוי מחושבות עכשיו לפי שנת הלידה של כל ילד. אם יש לך ילדים, היכנסו להגדרות ואשרו את שנות הלידה."
+          }
+        ],
+        unchanged: "המשמרות הקיימות שלך לא השתנו. אם תרצו, אפשר לחשב משמרת ישנה מחדש בשיטה החדשה דרך מסך העריכה.",
+        feedback: "מצאתם משהו שלא נראה נכון? נשמח לשמוע 💜",
+        gotIt: "הבנתי",
+        reopen: "מה חדש ב-Oras"
       },
 
       shiftEdit: {
@@ -360,9 +387,6 @@ const resources = {
         netTitle: "Net Monthly",
         netSubtitle: "After deductions",
         netSubtitleApprox: "Estimate using {{year}} rates",
-        taxUpdateTitle: "Net calculation updated",
-        taxUpdateBody: "We updated the net calculation to include pension and the 2026 tax rules. Your stored shifts haven't changed.",
-        taxUpdateDismiss: "Got it",
 
         creditsTitle: "Tax Credits",
         creditsSubtitle: "Monthly savings of ₪{{value}}",
@@ -520,6 +544,36 @@ const resources = {
       jobFilter: {
         label: "Filter by job",
         all: "All"
+      },
+
+      whatsNew: {
+        title: "✨ Oras has been updated!",
+        items: [
+          {
+            icon: "🕯",
+            title: "Shabbat hours, calculated automatically",
+            body: "The app now knows when Shabbat starts and ends in your city, and pays 150% only for the hours that actually fell on Shabbat. A shift that starts Friday afternoon and ends at night is split automatically into regular hours and Shabbat hours."
+          },
+          {
+            icon: "💼",
+            title: "Several jobs, each with its own color",
+            body: "Work in more than one place? Add your jobs in Settings, each with its own rate, city and color, and filter your shifts and stats by job."
+          },
+          {
+            icon: "🧾",
+            title: "Net pay updated for 2026",
+            body: "We added the new tax brackets and the updated National Insurance and health tax rates, plus pension contributions. The net you see now is closer to what's on your payslip."
+          },
+          {
+            icon: "👶",
+            title: "Tax credit points for children",
+            body: "Credit points are now calculated from each child's birth year. If you have children, go to Settings and confirm their birth years."
+          }
+        ],
+        unchanged: "Your existing shifts haven't changed. If you'd like, you can recalculate an old shift with the new method from its edit screen.",
+        feedback: "Found something that doesn't look right? We'd love to hear from you 💜",
+        gotIt: "Got it",
+        reopen: "What's new in Oras"
       },
 
       shiftEdit: {

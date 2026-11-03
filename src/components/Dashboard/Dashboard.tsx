@@ -1,8 +1,8 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useShifts } from '../../context/ShiftContext'
 import { useTranslation } from "react-i18next"
 import { FitText } from '../FitText/FitText'
+import { WhatsNewModal } from '../WhatsNewModal/WhatsNewModal'
 import { JobFilterTabs } from '../JobFilterTabs/JobFilterTabs'
 import { useJobFilter } from '../../hooks/useJobFilter'
 import { filterShiftsByJob, jobBreakdown } from '../../utils/jobFilter'
@@ -11,32 +11,12 @@ import { NO_JOB_COLOR, jobColor } from '../../utils/jobColors'
 import { formatHM, formatMoney } from '../../utils/format'
 import './Dashboard.css'
 
-// One-time notice about the 2026 tax/net update. Remembered per device:
-// it's only a convenience, so a new device just shows it once more.
-const TAX_UPDATE_DISMISSED_KEY = 'oras.taxUpdate2026Dismissed'
-
-const readDismissed = (): boolean => {
-  try { return localStorage.getItem(TAX_UPDATE_DISMISSED_KEY) === '1' } catch { return false }
-}
-
-const writeDismissed = () => {
-  try { localStorage.setItem(TAX_UPDATE_DISMISSED_KEY, '1') } catch { /* storage unavailable: hidden for this visit only */ }
-}
-
 export const Dashboard = () => {
-  const { taxInfo, userProfile, filteredShifts: monthShifts, shifts, jobs, loadingData } = useShifts()
+  const { taxInfo, userProfile, filteredShifts: monthShifts, jobs, whatsNewPending, markWhatsNewSeen } = useShifts()
   const { activeJobs, showTabs, selected: jobFilter, select: setJobFilter } = useJobFilter()
   const filteredShifts = filterShiftsByJob(monthShifts, jobFilter)
   const selectedJob = jobs.find(j => j.id === jobFilter) ?? null
   const breakdown = jobFilter === null ? jobBreakdown(monthShifts, jobs) : []
-  const [updateDismissed, setUpdateDismissed] = useState(readDismissed)
-  // Only users with shifts had a net calculated the old way
-  const showTaxUpdate = !updateDismissed && !loadingData && shifts.length > 0
-
-  const dismissTaxUpdate = () => {
-    writeDismissed()
-    setUpdateDismissed(true)
-  }
   const navigate = useNavigate()
   const isProfileComplete = userProfile.gender !== null
   const { t } = useTranslation()
@@ -63,21 +43,8 @@ const averageHourlyRate =
   return (
     <div className="dashboard">
         
-      {/* One-time: net calculation updated */}
-      {showTaxUpdate && (
-        <div className="dashboard-notice" role="status">
-          <div className="dashboard-notice__right">
-            <span className="dashboard-notice__icon">ℹ️</span>
-            <div className="dashboard-notice__text">
-              <p className="dashboard-notice__title">{t("dashboard.taxUpdateTitle")}</p>
-              <p className="dashboard-notice__sub">{t("dashboard.taxUpdateBody")}</p>
-            </div>
-          </div>
-          <button className="dashboard-notice__btn" onClick={dismissTaxUpdate}>
-            {t("dashboard.taxUpdateDismiss")}
-          </button>
-        </div>
-      )}
+      {/* One-time release notes, once per user (stored on the profile) */}
+      {whatsNewPending && <WhatsNewModal onClose={markWhatsNewSeen} />}
 
       {/* Notice */}
       {!isProfileComplete && (
