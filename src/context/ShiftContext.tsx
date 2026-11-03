@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import { reportError } from '../lib/sentry'
 import { historyWindow } from '../utils/dates'
 import { pickLastUsedJobId } from '../utils/jobs'
+import { parseLocalISODate } from '../utils/localDate'
 
 export type Shift = {
   id: string
@@ -110,7 +111,9 @@ export const isServiceCreditEligible = (
 ): boolean => {
   if (!dischargeDate) return false
 
-  const discharge = new Date(dischargeDate)
+  // Local midnight: new Date('YYYY-MM-DD') is UTC midnight, which is the
+  // previous day (and month, on the 1st) west of UTC.
+  const discharge = parseLocalISODate(dischargeDate)
   if (isNaN(discharge.getTime())) return false
 
   // Eligibility starts the month after discharge, per law.
