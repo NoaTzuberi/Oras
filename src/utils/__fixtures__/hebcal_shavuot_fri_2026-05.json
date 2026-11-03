@@ -1,0 +1,33 @@
+[
+ {
+  "category": "havdalah",
+  "date": "2026-05-16T20:12:00+03:00",
+  "title": "Havdalah: 20:12"
+ },
+ {
+  "category": "holiday",
+  "date": "2026-05-21",
+  "title": "Erev Shavuot"
+ },
+ {
+  "category": "candles",
+  "date": "2026-05-21T19:15:00+03:00",
+  "title": "Candle lighting: 19:15"
+ },
+ {
+  "category": "holiday",
+  "date": "2026-05-22",
+  "title": "Shavuot",
+  "yomtov": true
+ },
+ {
+  "category": "candles",
+  "date": "2026-05-22T19:16:00+03:00",
+  "title": "Candle lighting: 19:16"
+ },
+ {
+  "category": "havdalah",
+  "date": "2026-05-23T20:18:00+03:00",
+  "title": "Havdalah: 20:18"
+ }
+]

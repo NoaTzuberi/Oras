@@ -95,7 +95,6 @@ const resources = {
         noJob: "ללא עבודה",
         addJobHint: "אפשר להוסיף עבודות (שכר, עיר, תוספת שבת) בהגדרות",
         date: "תאריך",
-        checkingDate: "בודק תאריך...",
         shiftHoursLabel: "שעות המשמרת",
         start: "התחלה",
         end: "סוף",
@@ -105,9 +104,6 @@ const resources = {
         dailyTotal: "סה״כ יומי",
         perHour: "לשעה",
         holidaySuffix: "שבת / חג",
-        applyOnlyIfEmployerPays: "החל רק אם המעסיק משלם שכר חג",
-        apply150: "החל שכר 150%",
-        apply150Active: "✓ הוחל 150%",
         baseSalary: "שכר בסיס",
         tip: "טיפ",
         optional: "אופציונלי",
@@ -118,6 +114,7 @@ const resources = {
         saveChanges: "שמור שינויים",
         saving: "שומר...",
         alertEnterTimes: "אנא הכנס שעות משמרת",
+        alertSameTimes: "שעת ההתחלה והסיום זהות",
         alertEnterHourlyRate: "אנא הכנס שכר לשעה",
         alertEnterTotalSalary: "אנא הכנס שכר כולל",
         errorSaveFailed: "שגיאה בשמירת המשמרת, נסה שוב"
@@ -125,6 +122,9 @@ const resources = {
 
       jobs: {
         title: "העבודות שלי",
+        defaultName: "עבודה ראשית",
+        premiumUnset: "תוספת שבת: לא הוגדר",
+        premiumUnsetHint: "עוד לא הוגדר. נשאל אותך במשמרת השבת הראשונה",
         hint: "לכל עבודה שכר, עיר (לזמני שבת) ומדיניות תוספת שבת משלה",
         empty: "עוד לא הוספת עבודה",
         add: "+ הוסף עבודה",
@@ -146,6 +146,41 @@ const resources = {
         errorNameRequired: "אנא הכנס שם לעבודה",
         errorRate: "שכר לשעה לא תקין",
         errorSaveFailed: "שגיאה בשמירת העבודה, נסה שוב"
+      },
+
+      shabbat: {
+        breakdownPremium: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ שבת ×1.5",
+        breakdownNoPremium: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ שבת (ללא תוספת)",
+        breakdownInfo: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ בשבת",
+        dailyTotalInfo: "לידיעה בלבד, הסכום היומי לא משתנה. זמני שבת: {{city}}",
+        timesFor: "זמני שבת: {{city}}",
+        loading: "טוען זמני שבת...",
+        loadFailed: "לא הצלחנו לטעון את זמני השבת — הקש לנסות שוב",
+        loadFailedSub: "אפשר לשמור בכל זאת. המשמרת תסומן לבדיקה חוזרת ותחושב בינתיים לפי שכר רגיל.",
+        waitForTimes: "רגע, טוענים את זמני השבת",
+        askJobPremium: "האם העבודה הזו משלמת תוספת שבת (150%)?",
+        askJobPremiumSub: "התשובה תישמר לעבודה הזו. אפשר לשנות בהגדרות.",
+        yes: "כן",
+        no: "לא",
+        applyPremium: "תשלום 150% על שעות השבת במשמרת הזו",
+        unverified: "זמני השבת לא אומתו",
+        savedBreakdown: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ שבת"
+      },
+
+      shiftEdit: {
+        legacyNote: "המשמרת נשמרה בחישוב הקודם, ללא פיצול שעות שבת.",
+        legacyNote150: "המשמרת נשמרה בחישוב הקודם: 150% על כל המשמרת.",
+        unverifiedNote: "זמני השבת לא נטענו כשהמשמרת נשמרה, ולכן היא חושבה לפי שכר רגיל.",
+        recalculate: "חשב מחדש לפי שעות השבת החדשות",
+        recheck: "בדוק שוב את זמני השבת",
+        previewTitle: "תצוגה מקדימה של החישוב מחדש",
+        before: "לפני",
+        after: "אחרי",
+        beforeHours: "{{hours}} ש׳",
+        confirmRecalc: "אשר חישוב מחדש",
+        previewHint: "שום דבר לא נשמר עד שלוחצים על שמור שינויים.",
+        switchNotice: "המשמרת תחושב מחדש לפי שעות השבת החדשות. שכר: {{from}} ← {{to}}",
+        keepOld: "השאר את החישוב הקודם"
       },
 
       settings: {
@@ -338,7 +373,6 @@ const resources = {
         noJob: "No job",
         addJobHint: "Add your jobs (rate, city, Shabbat premium) in Settings",
         date: "Date",
-        checkingDate: "Checking date...",
         shiftHoursLabel: "Shift hours",
         start: "Start",
         end: "End",
@@ -348,9 +382,6 @@ const resources = {
         dailyTotal: "Daily total",
         perHour: "/ hr",
         holidaySuffix: "Shabbat / Holiday",
-        applyOnlyIfEmployerPays: "Apply only if your employer pays holiday rate.",
-        apply150: "Apply 150% Rate",
-        apply150Active: "✓ 150% Applied",
         baseSalary: "Base salary",
         tip: "Tip",
         optional: "optional",
@@ -360,6 +391,7 @@ const resources = {
         saveShift: "Save Shift",
         saveChanges: "Save changes",
         saving: "Saving...",
+        alertSameTimes: "Start and end times are the same",
         alertEnterTimes: "Please enter shift times",
         alertEnterHourlyRate: "Please enter hourly rate",
         alertEnterTotalSalary: "Please enter total salary",
@@ -368,6 +400,9 @@ const resources = {
 
       jobs: {
         title: "My jobs",
+        defaultName: "Main job",
+        premiumUnset: "Shabbat premium: not set",
+        premiumUnsetHint: "Not set yet. We'll ask on your first Shabbat shift",
         hint: "Each job has its own rate, city (for Shabbat times) and Shabbat premium policy",
         empty: "You haven't added a job yet",
         add: "+ Add job",
@@ -389,6 +424,41 @@ const resources = {
         errorNameRequired: "Please enter a job name",
         errorRate: "Invalid hourly rate",
         errorSaveFailed: "Couldn't save the job, please try again"
+      },
+
+      shabbat: {
+        breakdownPremium: "{{regular}}h regular · {{shabbat}}h Shabbat ×1.5",
+        breakdownNoPremium: "{{regular}}h regular · {{shabbat}}h Shabbat (no premium)",
+        breakdownInfo: "{{regular}}h regular · {{shabbat}}h during Shabbat",
+        dailyTotalInfo: "Info only, the daily total isn't changed. Shabbat times: {{city}}",
+        timesFor: "Shabbat times: {{city}}",
+        loading: "Loading Shabbat times...",
+        loadFailed: "Couldn't load Shabbat times — tap to retry",
+        loadFailedSub: "You can still save. The shift will be marked for re-checking and paid at the regular rate until then.",
+        waitForTimes: "One moment, loading Shabbat times",
+        askJobPremium: "Does this job pay a Shabbat premium (150%)?",
+        askJobPremiumSub: "Your answer is saved for this job. You can change it in Settings.",
+        yes: "Yes",
+        no: "No",
+        applyPremium: "Pay 150% for the Shabbat hours of this shift",
+        unverified: "Shabbat times not verified",
+        savedBreakdown: "{{regular}}h regular · {{shabbat}}h Shabbat"
+      },
+
+      shiftEdit: {
+        legacyNote: "Saved with the previous calculation, without splitting Shabbat hours.",
+        legacyNote150: "Saved with the previous calculation: 150% on the whole shift.",
+        unverifiedNote: "Shabbat times didn't load when this shift was saved, so it was paid at the regular rate.",
+        recalculate: "Recalculate with the new Shabbat calculation",
+        recheck: "Re-check Shabbat times",
+        previewTitle: "Recalculation preview",
+        before: "Before",
+        after: "After",
+        beforeHours: "{{hours}}h",
+        confirmRecalc: "Confirm recalculation",
+        previewHint: "Nothing is saved until you tap Save changes.",
+        switchNotice: "This shift will be recalculated with the new Shabbat hours. Pay: {{from}} → {{to}}",
+        keepOld: "Keep the previous calculation"
       },
 
       settings: {

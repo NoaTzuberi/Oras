@@ -687,3 +687,13 @@ html[dir="ltr"] .edit-time-divider {
   cursor: not-allowed;
   transform: none;
 }
+
+.shift-card__unverified-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 11px;
+  z-index: 1;
+}
+
+.shift-modal__unverified { color: #b45309; }

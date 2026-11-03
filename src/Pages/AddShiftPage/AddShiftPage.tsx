@@ -1,18 +1,23 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BottomNavBar } from '../../components/BottomNavBar/BottomNavBar'
 import './AddShiftPage.css'
 import { useShifts } from '../../context/ShiftContext'
-import { checkIfSpecialDay, calcHours } from '../../utils/shiftHelpers'
 import { InlineError } from '../../components/InlineError/InlineError'
 import { JobSelect } from '../../components/JobSelect/JobSelect'
+import { ShabbatPaySection } from '../../components/ShabbatPaySection/ShabbatPaySection'
 import { jerusalemISODate } from '../../utils/dates'
+import { DEFAULT_GEONAMEID } from '../../utils/cities'
+import { jobToInput } from '../../utils/jobs'
+import { resolvePremium } from '../../utils/shabbat'
+import { computeShiftPay } from '../../utils/shiftPay'
+import { useShabbatTimes } from '../../hooks/useShabbatTimes'
 
 export const AddShiftPage = () => {
   const navigate = useNavigate()
-  const { t } = useTranslation()
-  const { addShift, userProfile, jobs, lastUsedJobId } = useShifts()
+  const { t, i18n } = useTranslation()
+  const { addShift, updateJob, userProfile, jobs, lastUsedJobId } = useShifts()
 
   const [date, setDate] = useState(() => jerusalemISODate())
   const [startTime, setStartTime] = useState('')
@@ -30,47 +35,61 @@ export const AddShiftPage = () => {
   const hourlyRate = rateInput ?? (prefillRate != null ? String(prefillRate) : '')
   const setHourlyRate = (value: string) => setRateInput(value)
 
+  // null = follow the job's setting; true/false = this shift's override
+  const [premiumOverride, setPremiumOverride] = useState<boolean | null>(null)
+
   const handleJobChange = (id: string | null) => {
     setJobChoice(id)
     setRateInput(undefined)
+    setPremiumOverride(null)
   }
 
   const [totalSalary, setTotalSalary] = useState('')
   const [tips, setTips] = useState('')
-  const [specialDay, setSpecialDay] = useState<{ isSpecial: boolean; reason: string | null }>({ isSpecial: false, reason: null })
-  const [use150, setUse150] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [answeringPremium, setAnsweringPremium] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  const hours = calcHours(startTime, endTime)
+  // Shabbat times for the job's city (Tel Aviv when no job)
+  const geonameid = selectedJob?.geonameid ?? DEFAULT_GEONAMEID
+  const { lookup, holidayNames, retry } = useShabbatTimes(date, geonameid)
+  const premiumApplied = resolvePremium(premiumOverride, selectedJob?.paysShabbatPremium)
 
-  const calculatedSalary = (() => {
-    if (salaryType === 'hourly' && hourlyRate && hours > 0) {
-      const base = parseFloat(hourlyRate) * hours
-      return use150 ? parseFloat((base * 1.5).toFixed(2)) : parseFloat(base.toFixed(2))
+  const pay = computeShiftPay({
+    date, startTime, endTime, salaryType,
+    rate: hourlyRate ? parseFloat(hourlyRate) : null,
+    totalSalary: totalSalary ? parseFloat(totalSalary) : null,
+    premiumApplied,
+    shabbat: lookup,
+  })
+  const hours = pay?.hours ?? 0
+  const calculatedSalary = pay?.baseSalary ?? null
+
+  const answerJobPremium = async (pays: boolean) => {
+    if (!selectedJob) return
+    setAnsweringPremium(true)
+    try {
+      await updateJob(selectedJob.id, { ...jobToInput(selectedJob), paysShabbatPremium: pays })
+    } catch {
+      setSubmitError(t('jobs.errorSaveFailed'))
+    } finally {
+      setAnsweringPremium(false)
     }
-    if (salaryType === 'total' && totalSalary) return parseFloat(totalSalary)
-    return null
-  })()
+  }
 
   const totalWithTips = calculatedSalary !== null
     ? parseFloat((calculatedSalary + (parseFloat(tips) || 0)).toFixed(2))
     : null
 
-  useEffect(() => {
-    if (!date) return
-    setLoading(true)
-    checkIfSpecialDay(new Date(date)).then(result => {
-      setSpecialDay(result)
-      setLoading(false)
-    })
-  }, [date])
-
   const handleSubmit = async () => {
   setSubmitError('')
 
   if (!startTime || !endTime) return setSubmitError(t('shiftForm.alertEnterTimes'))
+  if (startTime === endTime) return setSubmitError(t('shiftForm.alertSameTimes'))
+  if (!pay) return setSubmitError(t('shiftForm.alertEnterTimes'))
+  // Saving with unknown Shabbat times is allowed only after the request failed
+  // (then it's marked unverified), not while it's still loading.
+  if (lookup.status === 'loading') return setSubmitError(t('shabbat.waitForTimes'))
   if (salaryType === 'hourly' && !hourlyRate) return setSubmitError(t('shiftForm.alertEnterHourlyRate'))
   if (salaryType === 'total' && !totalSalary) return setSubmitError(t('shiftForm.alertEnterTotalSalary'))
 
@@ -86,14 +105,17 @@ export const AddShiftPage = () => {
       baseSalary: calculatedSalary ?? 0,
       tips: parseFloat(tips) || 0,
       totalEarnings: totalWithTips ?? 0,
-      isShabbatOrHoliday: specialDay.isSpecial,
-      used150: use150,
+      isShabbatOrHoliday: pay.isShabbatOrHoliday,
+      // Old column, still written for older app versions: true only when
+      // the x1.5 was actually used on some hours.
+      used150: pay.premiumUsed,
       jobId,
       hourlyRate: salaryType === 'hourly' ? parseFloat(hourlyRate) : null,
-      regularHours: null,
-      shabbatHours: null,
-      shabbatPremiumApplied: null,
-      shabbatVerified: null,
+      regularHours: pay.split?.regularHours ?? null,
+      shabbatHours: pay.split?.shabbatHours ?? null,
+      // The intended premium (also kept when unverified, for re-checking later)
+      shabbatPremiumApplied: salaryType === 'hourly' ? premiumApplied : null,
+      shabbatVerified: pay.verified,
     })
 
     navigate('/shifts')
@@ -135,10 +157,11 @@ export const AddShiftPage = () => {
                 e.target.blur()
               }}
             />
-            {loading && <p className="hint">{t('shiftForm.checkingDate')}</p>}
-            {!loading && specialDay.isSpecial && (
-              <div className="special-day-badge">✡️ {specialDay.reason ?? ''} — {t('shiftForm.holidaySuffix')}</div>
-            )}
+            {holidayNames.map(h => (
+              <div key={h.title} className="special-day-badge">
+                ✡️ {i18n.language === 'he' ? h.hebrew : h.title} — {t('shiftForm.holidaySuffix')}
+              </div>
+            ))}
           </div>
 
           <div className="form-section">
@@ -162,6 +185,7 @@ export const AddShiftPage = () => {
               </div>
             </div>
             {hours > 0 && <p className="hours-summary">{t('shiftForm.hoursWorked', { hours })}</p>}
+            {startTime && startTime === endTime && <p className="hint">{t('shiftForm.alertSameTimes')}</p>}
           </div>
 
           <div className="form-section">
@@ -186,21 +210,18 @@ export const AddShiftPage = () => {
               </div>
             )}
 
-            {specialDay.isSpecial && salaryType === 'hourly' && hours > 0 && hourlyRate && (
-              <div className="suggestion-box">
-                <div className="suggestion-top">
-                  <span>💡 {specialDay.reason}</span>
-                  <span className="suggestion-rate">{(parseFloat(hourlyRate) * 1.5).toFixed(2)}/hr</span>
-                </div>
-                <p className="suggestion-sub">{t('shiftForm.applyOnlyIfEmployerPays')}</p>
-                <button
-                  className={`apply-150-btn ${use150 ? 'apply-150-btn--active' : ''}`}
-                  onClick={() => setUse150(p => !p)}
-                >
-                  {use150 ? t('shiftForm.apply150Active') : t('shiftForm.apply150')}
-                </button>
-              </div>
-            )}
+            <ShabbatPaySection
+              lookup={lookup}
+              onRetry={retry}
+              pay={pay}
+              salaryType={salaryType}
+              geonameid={geonameid}
+              job={selectedJob}
+              premiumApplied={premiumApplied}
+              onPremiumChange={setPremiumOverride}
+              onAnswerJobPremium={answerJobPremium}
+              answering={answeringPremium}
+            />
 
             {calculatedSalary !== null && (
               <div className="calc-result">

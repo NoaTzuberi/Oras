@@ -99,6 +99,18 @@ pay totals. Usually better to just leave the schema in place.
 ```sql
 begin;
 update public.shifts set job_id = null, hourly_rate = null;
-delete from public.jobs where name = 'עבודה ראשית';  -- only if no user created/renamed jobs since
+-- default jobs never renamed or answered; removes nothing users created
+delete from public.jobs j where j.name is null and j.pays_shabbat_premium is null;
 commit;
+```
+
+## Review: existing shifts under the Shabbat split (read-only)
+
+Never rewrites anything. Prints per-user/month totals before vs after and
+writes CSVs (`monthly.csv`, `changed_shifts.csv`) to `./shabbat-diff-<date>/`.
+Contains user ids: keep the output out of the repo.
+
+```sh
+DATABASE_URL="$STAGING_DB_URL" npm run diff:shabbat     # rehearse
+DATABASE_URL="$PROD_DB_URL" npm run diff:shabbat        # after backfill, for review
 ```

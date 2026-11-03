@@ -1,0 +1,39 @@
+[
+ {
+  "category": "havdalah",
+  "date": "2026-09-05T19:37:00+03:00",
+  "title": "Havdalah: 19:37"
+ },
+ {
+  "category": "holiday",
+  "date": "2026-09-11",
+  "title": "Erev Rosh Hashana"
+ },
+ {
+  "category": "candles",
+  "date": "2026-09-11T18:32:00+03:00",
+  "title": "Candle lighting: 18:32"
+ },
+ {
+  "category": "holiday",
+  "date": "2026-09-12",
+  "title": "Rosh Hashana 5787",
+  "yomtov": true
+ },
+ {
+  "category": "candles",
+  "date": "2026-09-12T19:28:00+03:00",
+  "title": "Candle lighting: 19:28"
+ },
+ {
+  "category": "holiday",
+  "date": "2026-09-13",
+  "title": "Rosh Hashana II",
+  "yomtov": true
+ },
+ {
+  "category": "havdalah",
+  "date": "2026-09-13T19:26:00+03:00",
+  "title": "Havdalah: 19:26"
+ }
+]

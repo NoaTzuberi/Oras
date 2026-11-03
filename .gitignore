@@ -28,3 +28,4 @@ coverage/
 .agents/
 .claude/
 skills-lock.json
+shabbat-diff-*/

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calcHours, shiftBaseRate } from './shiftHelpers'
+import { shiftBaseRate } from './shiftHelpers'
 
 const legacy = { hourlyRate: null }
 
@@ -28,11 +28,5 @@ describe('shiftBaseRate', () => {
   it('re-saving a 150% shift keeps the same pay (no compounding)', () => {
     const rate = shiftBaseRate({ salaryType: 'hourly', hours: 8, baseSalary: 600, used150: true, ...legacy })!
     expect(rate * 8 * 1.5).toBe(600)
-  })
-})
-
-describe('calcHours', () => {
-  it('wraps overnight shifts', () => {
-    expect(calcHours('22:00', '06:00')).toBe(8)
   })
 })

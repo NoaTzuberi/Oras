@@ -1,45 +1,22 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './ShiftCard.css'
 import type { Shift } from '../../context/ShiftContext';
 import { useShifts } from "../../context/ShiftContext"
 import { useTranslation } from "react-i18next"
-import { checkIfSpecialDay, calcHours, shiftBaseRate } from '../../utils/shiftHelpers'
 import { InlineError } from '../InlineError/InlineError'
-import { JobSelect } from '../JobSelect/JobSelect'
+import { ShiftEditForm } from '../ShiftEditForm/ShiftEditForm'
+import { jobDisplayName } from '../../utils/jobs'
 
 // ── Component ─────────────────────────────────────
 
 export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSProperties }) => {
   const { t, i18n } = useTranslation()
-  const { deleteShift, updateShift, jobs } = useShifts()
+  const { deleteShift, jobs } = useShifts()
   const shiftJob = jobs.find(j => j.id === shift.jobId) ?? null
 
   const [open, setOpen] = useState(false)
   const [editMode, setEditMode] = useState(false)
 
-  // Edit form state — pre-filled with current shift values
-  const [editDate, setEditDate] = useState(shift.date)
-  const [editStartTime, setEditStartTime] = useState(shift.startTime)
-  const [editEndTime, setEditEndTime] = useState(shift.endTime)
-  const [editSalaryType, setEditSalaryType] = useState<'hourly' | 'total'>(shift.salaryType)
-  const [editJobId, setEditJobId] = useState<string | null>(shift.jobId)
-  // Base rate, before the x1.5. Rebuilding it from base_salary / hours
-  // re-applied the premium on every edit of a 150% shift.
-  const [editHourlyRate, setEditHourlyRate] = useState(() => {
-    const rate = shiftBaseRate(shift)
-    return rate != null ? String(rate) : ''
-  })
-  const [editTotalSalary, setEditTotalSalary] = useState(
-    shift.salaryType === 'total' ? String(shift.baseSalary) : ''
-  )
-  const [editTips, setEditTips] = useState(shift.tips > 0 ? String(shift.tips) : '')
-  const [editUse150, setEditUse150] = useState(shift.used150)
-  const [editSpecialDay, setEditSpecialDay] = useState<{ isSpecial: boolean; reason: string | null }>({
-    isSpecial: shift.isShabbatOrHoliday,
-    reason: null,
-  })
-  const [editLoading, setEditLoading] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [actionError, setActionError] = useState('')
 
   const locale = i18n.language === 'he' ? 'he-IL' : 'en-US'
@@ -54,74 +31,14 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
   const month = new Date(shift.date).toLocaleDateString(locale, { month: 'short' })
   const weekday = new Date(shift.date).toLocaleDateString(locale, { weekday: 'short' })
 
-  // Recalculate when edit date changes
-  useEffect(() => {
-    if (!editMode || !editDate) return
-    setEditLoading(true)
-    checkIfSpecialDay(new Date(editDate)).then(result => {
-      setEditSpecialDay(result)
-      setEditLoading(false)
-    })
-  }, [editDate, editMode])
-
-  const editHours = calcHours(editStartTime, editEndTime)
-
-  const editCalculatedSalary = (() => {
-    if (editSalaryType === 'hourly' && editHourlyRate && editHours > 0) {
-      const base = parseFloat(editHourlyRate) * editHours
-      return editUse150 ? parseFloat((base * 1.5).toFixed(2)) : parseFloat(base.toFixed(2))
-    }
-    if (editSalaryType === 'total' && editTotalSalary) return parseFloat(editTotalSalary)
-    return null
-  })()
-
-  const editTotalWithTips = editCalculatedSalary !== null
-    ? parseFloat((editCalculatedSalary + (parseFloat(editTips) || 0)).toFixed(2))
-    : null
-
-  const handleSave = async () => {
-    setActionError('')
-
-    if (!editStartTime || !editEndTime) return setActionError(t('shiftForm.alertEnterTimes'))
-    if (editSalaryType === 'hourly' && !editHourlyRate) return setActionError(t('shiftForm.alertEnterHourlyRate'))
-    if (editSalaryType === 'total' && !editTotalSalary) return setActionError(t('shiftForm.alertEnterTotalSalary'))
-
-    setSaving(true)
-
-    try {
-      await updateShift(shift.id, {
-        date: editDate,
-        startTime: editStartTime,
-        endTime: editEndTime,
-        hours: editHours,
-        salaryType: editSalaryType,
-        baseSalary: editCalculatedSalary ?? 0,
-        tips: parseFloat(editTips) || 0,
-        totalEarnings: editTotalWithTips ?? 0,
-        isShabbatOrHoliday: editSpecialDay.isSpecial,
-        used150: editUse150,
-        jobId: editJobId,
-        hourlyRate: editSalaryType === 'hourly' ? parseFloat(editHourlyRate) : null,
-        regularHours: null,
-        shabbatHours: null,
-        shabbatPremiumApplied: null,
-        shabbatVerified: null,
-      })
-      setSaving(false)
-      setEditMode(false)
-      setOpen(false)
-    } catch (e) {
-      console.error('Error saving shift:', e)
-      setActionError(t('shiftCard.errorUpdateFailed'))
-      setSaving(false)
-    }
-  }
-
   return (
     <>
       <div className="shift-card" style={style} onClick={() => setOpen(true)}>
         {shift.isShabbatOrHoliday && (
           <div className="shift-card__holiday-dot">✡️</div>
+        )}
+        {shift.shabbatVerified === false && (
+          <div className="shift-card__unverified-dot" title={t('shabbat.unverified')}>⚠️</div>
         )}
         <div className="shift-card__top">
           <span className="shift-card__weekday">{weekday}</span>
@@ -159,7 +76,7 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                   {shiftJob && (
                     <div className="shift-modal__row">
                       <span>{t('shiftForm.job')}</span>
-                      <span>{shiftJob.name}</span>
+                      <span>{jobDisplayName(shiftJob, t)}</span>
                     </div>
                   )}
                   <div className="shift-modal__section">
@@ -176,6 +93,16 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                       </div>
                     </div>
                     <p className="shift-modal__hours-caption">{shift.hours} {t("shiftCard.hours")}</p>
+                    {/* Only shifts saved with the split have these; older shifts show as before */}
+                    {shift.regularHours != null && shift.shabbatHours != null && shift.shabbatHours > 0 && (
+                      <p className="shift-modal__hours-caption">
+                        {t('shabbat.savedBreakdown', { regular: shift.regularHours, shabbat: shift.shabbatHours })}
+                        {shift.shabbatPremiumApplied ? ' ×1.5' : ''}
+                      </p>
+                    )}
+                    {shift.shabbatVerified === false && (
+                      <p className="shift-modal__hours-caption shift-modal__unverified">⚠️ {t('shabbat.unverified')}</p>
+                    )}
                   </div>
 
                   <div className="shift-modal__section">
@@ -234,179 +161,11 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
               </>
             ) : (
               // ── Edit mode ──────────────────────────────
-              <>
-                <div className="shift-modal__header">
-                  <button className="shift-modal__close" onClick={() => setEditMode(false)}>←</button>
-                  <div className="shift-modal__header-left">
-                    <span className="shift-modal__header-date">{t('shiftCard.editTitle')}</span>
-                  </div>
-                </div>
-
-                <div className="shift-modal__body shift-modal__edit-body">
-
-                  {/* Job */}
-                  <div className="edit-form-section">
-                    <label className="edit-form-label">{t('shiftForm.job')}</label>
-                    <JobSelect
-                      jobs={jobs}
-                      value={editJobId}
-                      onChange={id => {
-                        setEditJobId(id)
-                        const rate = jobs.find(j => j.id === id)?.hourlyRate
-                        if (rate != null) setEditHourlyRate(String(rate))
-                      }}
-                      className="edit-form-input"
-                    />
-                  </div>
-
-                  {/* Date */}
-                  <div className="edit-form-section">
-                    <label className="edit-form-label">{t('shiftForm.date')}</label>
-                    <input
-                      type="date"
-                      className="edit-form-input"
-                      value={editDate}
-                      onChange={(e) => setEditDate(e.target.value)}
-                    />
-                    {editLoading && <p className="edit-hint">{t('shiftForm.checkingDate')}</p>}
-                    {!editLoading && editSpecialDay.isSpecial && (
-                      <div className="edit-special-badge">✡️ {editSpecialDay.reason ?? ''} — {t('shiftForm.holidaySuffix')}</div>
-                    )}
-                  </div>
-
-                  {/* Times */}
-                  <div className="edit-form-section">
-                    <label className="edit-form-label">{t('shiftForm.shiftHoursLabel')}</label>
-                    <div className="edit-time-row">
-                      <div className="edit-time-block">
-                        <span className="edit-time-label">{t('shiftForm.start')}</span>
-                        <input
-                          type="time"
-                          className="edit-form-input"
-                          value={editStartTime}
-                          step="60"
-                          onChange={e => setEditStartTime(e.target.value)}
-                        />
-                      </div>
-                      <div className="edit-time-divider">←</div>
-                      <div className="edit-time-block">
-                        <span className="edit-time-label">{t('shiftForm.end')}</span>
-                        <input
-                          type="time"
-                          className="edit-form-input"
-                          value={editEndTime}
-                          step="60"
-                          onChange={e => setEditEndTime(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    {editHours > 0 && <p className="edit-hours-summary">{t('shiftForm.hoursWorked', { hours: editHours })}</p>}
-                  </div>
-
-                  {/* Salary */}
-                  <div className="edit-form-section">
-                    <label className="edit-form-label">{t('shiftForm.salary')}</label>
-                    <div className="edit-toggle-row">
-                      <button
-                        className={`edit-toggle-btn ${editSalaryType === 'hourly' ? 'edit-toggle-btn--active' : ''}`}
-                        onClick={() => setEditSalaryType('hourly')}
-                      >
-                        {t('shiftForm.hourly')}
-                      </button>
-                      <button
-                        className={`edit-toggle-btn ${editSalaryType === 'total' ? 'edit-toggle-btn--active' : ''}`}
-                        onClick={() => setEditSalaryType('total')}
-                      >
-                        {t('shiftForm.dailyTotal')}
-                      </button>
-                    </div>
-
-                    {editSalaryType === 'hourly' && (
-                      <div className="edit-input-with-symbol">
-                        <span className="edit-symbol">₪</span>
-                        <input
-                          type="number"
-                          className="edit-form-input"
-                          placeholder="e.g. 55"
-                          value={editHourlyRate}
-                          onChange={e => setEditHourlyRate(e.target.value)}
-                        />
-                        <span className="edit-per-label">{t('shiftForm.perHour')}</span>
-                      </div>
-                    )}
-
-                    {editSalaryType === 'total' && (
-                      <div className="edit-input-with-symbol">
-                        <span className="edit-symbol">₪</span>
-                        <input
-                          type="number"
-                          className="edit-form-input"
-                          placeholder="e.g. 450"
-                          value={editTotalSalary}
-                          onChange={e => setEditTotalSalary(e.target.value)}
-                        />
-                      </div>
-                    )}
-
-                    {editSpecialDay.isSpecial && editSalaryType === 'hourly' && editHours > 0 && editHourlyRate && (
-                      <div className="edit-suggestion-box">
-                        <div className="edit-suggestion-top">
-                          <span>💡 {editSpecialDay.reason}</span>
-                          <span className="edit-suggestion-rate">{(parseFloat(editHourlyRate) * 1.5).toFixed(2)}/hr</span>
-                        </div>
-                        <button
-                          className={`edit-apply-150-btn ${editUse150 ? 'edit-apply-150-btn--active' : ''}`}
-                          onClick={() => setEditUse150(p => !p)}
-                        >
-                          {editUse150 ? t('shiftForm.apply150Active') : t('shiftForm.apply150')}
-                        </button>
-                      </div>
-                    )}
-
-                    {editCalculatedSalary !== null && (
-                      <div className="edit-calc-result">
-                        <span className="edit-calc-label">{t('shiftForm.baseSalary')}</span>
-                        <span className="edit-calc-value">₪{editCalculatedSalary}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Tips */}
-                  <div className="edit-form-section">
-                    <label className="edit-form-label">{t('shiftForm.tip')} <span className="edit-optional">{t('shiftForm.optional')}</span></label>
-                    <div className="edit-input-with-symbol">
-                      <span className="edit-symbol">₪</span>
-                      <input
-                        type="number"
-                        className="edit-form-input"
-                        placeholder={t('shiftForm.tipsPlaceholder') ?? ''}
-                        value={editTips}
-                        onChange={e => setEditTips(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Total */}
-                  {editTotalWithTips !== null && (
-                    <div className="edit-total-summary">
-                      <span className="edit-total-label">{t('shiftForm.totalIncome')}</span>
-                      <span className="edit-total-value">₪{editTotalWithTips}</span>
-                    </div>
-                  )}
-
-                  {actionError && <InlineError>{actionError}</InlineError>}
-
-                  {/* Save button */}
-                  <button
-                    className="edit-save-btn"
-                    onClick={handleSave}
-                    disabled={saving}
-                  >
-                    {saving ? t('shiftForm.saving') : t('shiftForm.saveChanges')}
-                  </button>
-
-                </div>
-              </>
+              <ShiftEditForm
+                shift={shift}
+                onCancel={() => setEditMode(false)}
+                onSaved={() => { setEditMode(false); setOpen(false) }}
+              />
             )}
           </div>
         </div>

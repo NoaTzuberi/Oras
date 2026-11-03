@@ -12,7 +12,8 @@
     "db:pull": "supabase db pull",
     "db:diff": "supabase db diff -f",
     "db:push": "supabase db push",
-    "backfill:jobs": "node scripts/backfill-jobs.mjs"
+    "backfill:jobs": "node scripts/backfill-jobs.mjs",
+    "diff:shabbat": "node scripts/diff-shabbat-recompute.mjs"
   },
   "dependencies": {
     "@sentry/react": "^10.69.0",
