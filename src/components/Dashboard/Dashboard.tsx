@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom'
 import { useShifts } from '../../context/ShiftContext'
 import { useTranslation } from "react-i18next"
 import { FitText } from '../FitText/FitText'
-import { WhatsNewModal } from '../WhatsNewModal/WhatsNewModal'
 import { JobFilterTabs } from '../JobFilterTabs/JobFilterTabs'
 import { useJobFilter } from '../../hooks/useJobFilter'
 import { filterShiftsByJob, jobBreakdown } from '../../utils/jobFilter'
@@ -12,7 +11,7 @@ import { formatHM, formatMoney } from '../../utils/format'
 import './Dashboard.css'
 
 export const Dashboard = () => {
-  const { taxInfo, userProfile, filteredShifts: monthShifts, jobs, whatsNewPending, markWhatsNewSeen } = useShifts()
+  const { taxInfo, userProfile, filteredShifts: monthShifts, jobs } = useShifts()
   const { activeJobs, showTabs, selected: jobFilter, select: setJobFilter } = useJobFilter()
   const filteredShifts = filterShiftsByJob(monthShifts, jobFilter)
   const selectedJob = jobs.find(j => j.id === jobFilter) ?? null
@@ -43,8 +42,6 @@ const averageHourlyRate =
   return (
     <div className="dashboard">
         
-      {/* One-time release notes, once per user (stored on the profile) */}
-      {whatsNewPending && <WhatsNewModal onClose={markWhatsNewSeen} />}
 
       {/* Notice */}
       {!isProfileComplete && (

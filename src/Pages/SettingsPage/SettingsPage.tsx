@@ -12,6 +12,7 @@ import { taxConfigFor } from '../../tax'
 import { InlineError } from '../../components/InlineError/InlineError'
 import { JobsManager } from '../../components/JobsManager/JobsManager'
 import { WhatsNewModal } from '../../components/WhatsNewModal/WhatsNewModal'
+import { Switch } from '../../components/Switch/Switch'
 import { parseLocalISODate, toLocalISODate } from '../../utils/localDate'
 
 export const SettingsPage = () => {
@@ -264,25 +265,21 @@ export const SettingsPage = () => {
 
           {/* Moshav and priority area are no longer offered: they aren't
               credit points (see calcCreditPoints). Stored values are kept. */}
-          <div className="switch-row" onClick={() => setForm(f => ({ ...f, hasAcademicDegree: !f.hasAcademicDegree }))}>
-            <div className="switch-info">
-              <span className="switch-title">{t('settings.academicDegree')}</span>
-              <span className="switch-hint">{t('settings.academicHint')}</span>
-            </div>
-            <div className={`switch ${form.hasAcademicDegree ? 'switch--on' : ''}`}>
-              <div className="switch__thumb" />
-            </div>
-          </div>
+          <Switch
+            className="ui-switch-row--list"
+            checked={form.hasAcademicDegree}
+            onChange={v => setForm(f => ({ ...f, hasAcademicDegree: v }))}
+            label={t('settings.academicDegree')}
+            hint={t('settings.academicHint')}
+          />
 
-          <div className="switch-row" onClick={() => setForm(f => ({ ...f, isNewImmigrant: !f.isNewImmigrant }))}>
-            <div className="switch-info">
-              <span className="switch-title">{t('settings.newImmigrant')}</span>
-              <span className="switch-hint">{t('settings.newImmigrantHint')}</span>
-            </div>
-            <div className={`switch ${form.isNewImmigrant ? 'switch--on' : ''}`}>
-              <div className="switch__thumb" />
-            </div>
-          </div>
+          <Switch
+            className="ui-switch-row--list"
+            checked={form.isNewImmigrant}
+            onChange={v => setForm(f => ({ ...f, isNewImmigrant: v }))}
+            label={t('settings.newImmigrant')}
+            hint={t('settings.newImmigrantHint')}
+          />
 
           {form.isNewImmigrant && (
             <div className="immigration-year">

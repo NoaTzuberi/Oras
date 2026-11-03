@@ -106,3 +106,8 @@
     font-size: 24px;
   }
 }
+/* Keyboard open on a touch device: get out of the way (see useTyping) */
+.bottom-nav--typing {
+  visibility: hidden;
+  pointer-events: none;
+}

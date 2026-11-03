@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ShiftsProvider } from './context/ShiftContext'
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute'
+import { WhatsNewGate } from './components/WhatsNewModal/WhatsNewGate'
 import { useAuth } from './context/AuthContext'
 
 const LiquidBackground = lazy(() => import('./components/LiquidBackground/LiquidBackground').then(m => ({ default: m.LiquidBackground })))
@@ -46,6 +47,7 @@ const AppRoutes = () => {
             element={
               <ProtectedRoute>
                 <ShiftsProvider>
+                  <WhatsNewGate />
                   <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/add" element={<AddShiftPage />} />

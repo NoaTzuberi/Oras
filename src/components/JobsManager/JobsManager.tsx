@@ -4,6 +4,7 @@ import { useShifts, type Job, type JobInput } from '../../context/ShiftContext'
 import { jobDisplayName, jobToInput as toInput, newJobDefaults } from '../../utils/jobs'
 import { ISRAELI_CITIES, cityName } from '../../utils/cities'
 import { InlineError } from '../InlineError/InlineError'
+import { Switch } from '../Switch/Switch'
 import { jobTaxSettings } from '../../tax/calc'
 import './JobsManager.css'
 
@@ -93,27 +94,23 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
         </select>
       </label>
 
-      <div className="switch-row" onClick={() => setForm(f => ({ ...f, paysShabbatPremium: !f.paysShabbatPremium }))}>
-        <div className="switch-info">
-          <span className="switch-title">{t('jobs.paysPremium')}</span>
-          <span className="switch-hint">
-            {form.paysShabbatPremium === null ? t('jobs.premiumUnsetHint') : t('jobs.paysPremiumHint')}
-          </span>
-        </div>
-        <div className={`switch ${form.paysShabbatPremium ? 'switch--on' : ''}`}>
-          <div className="switch__thumb" />
-        </div>
-      </div>
+      {/* NULL = the user hasn't answered yet: shown as "not set", not as off */}
+      <Switch
+        className="ui-switch-row--list"
+        checked={form.paysShabbatPremium}
+        onChange={v => setForm(f => ({ ...f, paysShabbatPremium: v }))}
+        label={t('jobs.paysPremium')}
+        hint={form.paysShabbatPremium === null ? t('jobs.premiumUnsetHint') : t('jobs.paysPremiumHint')}
+        unsetLabel={t('jobs.notSet')}
+      />
 
-      <div className="switch-row" onClick={() => setPensionActive(v => !v)}>
-        <div className="switch-info">
-          <span className="switch-title">{t('jobs.pension')}</span>
-          <span className="switch-hint">{t('jobs.pensionHint')}</span>
-        </div>
-        <div className={`switch ${pensionActive ? 'switch--on' : ''}`}>
-          <div className="switch__thumb" />
-        </div>
-      </div>
+      <Switch
+        className="ui-switch-row--list"
+        checked={pensionActive}
+        onChange={setPensionActive}
+        label={t('jobs.pension')}
+        hint={t('jobs.pensionHint')}
+      />
 
       {pensionActive && (
         <label className="job-editor__field">
@@ -133,15 +130,13 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
         </label>
       )}
 
-      <div className="switch-row" onClick={() => setTipsInPayslip(v => !v)}>
-        <div className="switch-info">
-          <span className="switch-title">{t('jobs.tipsInPayslip')}</span>
-          <span className="switch-hint">{t('jobs.tipsInPayslipHint')}</span>
-        </div>
-        <div className={`switch ${tipsInPayslip ? 'switch--on' : ''}`}>
-          <div className="switch__thumb" />
-        </div>
-      </div>
+      <Switch
+        className="ui-switch-row--list"
+        checked={tipsInPayslip}
+        onChange={setTipsInPayslip}
+        label={t('jobs.tipsInPayslip')}
+        hint={t('jobs.tipsInPayslipHint')}
+      />
 
       {error && <InlineError>{error}</InlineError>}
 

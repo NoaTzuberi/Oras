@@ -5,6 +5,7 @@ import { historyWindow } from '../utils/dates'
 import { pickLastUsedJobId } from '../utils/jobs'
 import { parseLocalISODate } from '../utils/localDate'
 import { calcTaxInfo, periodOf, type TaxInfo } from '../tax/calc'
+import { shouldShowWhatsNew } from '../utils/whatsNew'
 import { childrenToStored, parseStoredChildren, type Child, type ParentColumn } from '../tax/children'
 
 export type Shift = {
@@ -238,6 +239,8 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
   const [userProfile, setUserProfileState] = useState<UserProfile>(defaultProfile)
   // undefined = unknown (not loaded, or the column doesn't exist yet): don't show
   const [whatsNewSeenAt, setWhatsNewSeenAt] = useState<string | null | undefined>(undefined)
+  // All of the user's shifts, not just the loaded 12-month window
+  const [shiftCount, setShiftCount] = useState<number | null>(null)
   const [loadingData, setLoadingData] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState(new Date())
 
@@ -274,6 +277,13 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
       if (shiftsData) {
         setShifts(shiftsData.map(rowToShift))
       }
+
+      const { count, error: countError } = await supabase
+        .from('shifts')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+      if (countError) reportError(countError)
+      setShiftCount(countError ? null : count ?? 0)
 
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
@@ -316,7 +326,12 @@ export const ShiftsProvider = ({ children }: { children: ReactNode }) => {
           isPriorityArea: profileData.is_priority_area ?? false,
           defaultHourlyRate: profileData.default_hourly_rate ?? null,
         })
-        setWhatsNewSeenAt('whats_new_seen_at' in profileData ? profileData.whats_new_seen_at : undefined)
+        if ('whats_new_seen_at' in profileData) {
+          setWhatsNewSeenAt(profileData.whats_new_seen_at)
+        } else {
+          // Column not returned (migration missing / stale API schema): don't show, but make it visible
+          reportError(new Error('user_profiles.whats_new_seen_at missing from the profile row'))
+        }
       }
     } catch (e) {
       console.error('Error loading data:', e)
@@ -479,7 +494,9 @@ const filteredShifts = shifts.filter(shift => {
   const taxInfo = calcTaxInfo(userProfile, filteredShifts, jobs, periodOf(selectedMonth))
 
   // Only for users who already had shifts; the migration marks everyone else as seen
-  const whatsNewPending = !loadingData && whatsNewSeenAt === null && shifts.length > 0
+  const whatsNewPending = shouldShowWhatsNew({
+    loading: loadingData, seenAt: whatsNewSeenAt, shiftCount, loadedShifts: shifts.length,
+  })
 
   /** Hides it right away; if saving fails it may show again on another visit. */
   const markWhatsNewSeen = async () => {
