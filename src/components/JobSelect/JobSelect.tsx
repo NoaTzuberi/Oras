@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import type { Job } from '../../context/ShiftContext'
+import { jobDisplayName } from '../../utils/jobs'
 
 type Props = {
   jobs: Job[]
@@ -22,7 +23,7 @@ export const JobSelect = ({ jobs, value, onChange, className }: Props) => {
       <option value="">{t('shiftForm.noJob')}</option>
       {options.map(job => (
         <option key={job.id} value={job.id}>
-          {job.name}{job.archived ? ` (${t('jobs.archivedTag')})` : ''}
+          {jobDisplayName(job, t)}{job.archived ? ` (${t('jobs.archivedTag')})` : ''}
         </option>
       ))}
     </select>

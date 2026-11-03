@@ -22,7 +22,8 @@ alter table public.shifts
   drop column if exists shabbat_premium_applied,
   drop column if exists shabbat_verified;
 
-drop table if exists public.jobs;
+drop table if exists public.jobs;  -- also drops the jobs_assign_color trigger
+drop function if exists public.jobs_assign_color();
 
 -- Remove the migration from history so `supabase db push` would re-apply it.
 delete from supabase_migrations.schema_migrations where version = '20261101120000';

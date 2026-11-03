@@ -4,7 +4,7 @@
 
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(14);
 
 insert into auth.users (id, email) values
   ('11111111-1111-1111-1111-111111111111', 'user-a@test.local'),
@@ -17,6 +17,33 @@ insert into public.jobs (id, user_id, name) values
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.jobs'::regclass),
   'RLS is enabled on public.jobs'
+);
+
+-- ── Defaults ──────────────────────────────────────
+select is(
+  (select pays_shabbat_premium from public.jobs where id = 'aaaaaaaa-0000-0000-0000-000000000001'),
+  true,
+  'A job created without a premium answer defaults to pays_shabbat_premium = true'
+);
+
+select is(
+  (select color from public.jobs where id = 'aaaaaaaa-0000-0000-0000-000000000001'),
+  '#6366F1',
+  'A user''s first job gets the first palette color'
+);
+
+insert into public.jobs (user_id, name, pays_shabbat_premium) values
+  ('11111111-1111-1111-1111-111111111111', null, null);
+
+select is(
+  (select color from public.jobs where user_id = '11111111-1111-1111-1111-111111111111' and name is null),
+  '#0EA5E9',
+  'A user''s second job gets the second palette color'
+);
+
+select ok(
+  (select pays_shabbat_premium is null from public.jobs where user_id = '11111111-1111-1111-1111-111111111111' and name is null),
+  'Name and premium can be NULL (backfilled default job)'
 );
 
 -- ── Act as user A ─────────────────────────────────
@@ -87,8 +114,8 @@ select is(
 
 select is(
   (select count(*)::int from public.jobs where user_id = '11111111-1111-1111-1111-111111111111'),
-  2,
-  'User A now has exactly their 2 jobs'
+  3,
+  'User A now has exactly their 3 jobs'
 );
 
 select * from finish();

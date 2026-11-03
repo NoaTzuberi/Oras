@@ -1,18 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useShifts, type Job, type JobInput } from '../../context/ShiftContext'
-import { newJobDefaults } from '../../utils/jobs'
+import { jobDisplayName, jobToInput as toInput, newJobDefaults } from '../../utils/jobs'
 import { ISRAELI_CITIES, cityName } from '../../utils/cities'
 import { InlineError } from '../InlineError/InlineError'
 import './JobsManager.css'
 
-const toInput = (job: Job): JobInput => ({
-  name: job.name,
-  hourlyRate: job.hourlyRate,
-  geonameid: job.geonameid,
-  paysShabbatPremium: job.paysShabbatPremium,
-  archived: job.archived,
-})
 
 type EditorProps = {
   initial: JobInput
@@ -22,20 +15,22 @@ type EditorProps = {
 
 const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
   const { t, i18n } = useTranslation()
-  const [form, setForm] = useState<JobInput>(initial)
+  // The default job's name is NULL: prefill the translated name so saving
+  // stores it in the user's language.
+  const [form, setForm] = useState<JobInput>(() => ({ ...initial, name: initial.name ?? t('jobs.defaultName') }))
   const [rate, setRate] = useState(initial.hourlyRate != null ? String(initial.hourlyRate) : '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   const handleSave = async () => {
     setError('')
-    if (!form.name.trim()) return setError(t('jobs.errorNameRequired'))
+    if (!form.name?.trim()) return setError(t('jobs.errorNameRequired'))
     const parsedRate = rate.trim() === '' ? null : parseFloat(rate)
     if (parsedRate !== null && (isNaN(parsedRate) || parsedRate < 0)) return setError(t('jobs.errorRate'))
 
     setSaving(true)
     try {
-      await onSave({ ...form, name: form.name.trim(), hourlyRate: parsedRate })
+      await onSave({ ...form, name: form.name!.trim(), hourlyRate: parsedRate })
     } catch {
       setError(t('jobs.errorSaveFailed'))
       setSaving(false)
@@ -47,7 +42,7 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
       <input
         className="settings-input"
         placeholder={t('jobs.namePlaceholder') ?? ''}
-        value={form.name}
+        value={form.name ?? ''}
         maxLength={80}
         onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
       />
@@ -85,7 +80,9 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
       <div className="switch-row" onClick={() => setForm(f => ({ ...f, paysShabbatPremium: !f.paysShabbatPremium }))}>
         <div className="switch-info">
           <span className="switch-title">{t('jobs.paysPremium')}</span>
-          <span className="switch-hint">{t('jobs.paysPremiumHint')}</span>
+          <span className="switch-hint">
+            {form.paysShabbatPremium === null ? t('jobs.premiumUnsetHint') : t('jobs.paysPremiumHint')}
+          </span>
         </div>
         <div className={`switch ${form.paysShabbatPremium ? 'switch--on' : ''}`}>
           <div className="switch__thumb" />
@@ -135,12 +132,12 @@ export const JobsManager = () => {
     ) : (
       <div key={job.id} className={`job-row ${job.archived ? 'job-row--archived' : ''}`}>
         <div className="job-row__info">
-          <span className="switch-title">{job.name}</span>
+          <span className="switch-title">{jobDisplayName(job, t)}</span>
           <span className="switch-hint">
             {job.hourlyRate != null ? `₪${job.hourlyRate}${t('settings.perHourSuffix')} · ` : ''}
             {cityName(job.geonameid, i18n.language)}
             {' · '}
-            {job.paysShabbatPremium ? t('jobs.premiumOn') : t('jobs.premiumOff')}
+            {job.paysShabbatPremium === null ? t('jobs.premiumUnset') : job.paysShabbatPremium ? t('jobs.premiumOn') : t('jobs.premiumOff')}
           </span>
         </div>
         <div className="job-row__actions">

@@ -28,14 +28,18 @@ export type Shift = {
 
 export type Job = {
   id: string
-  name: string
+  // NULL for the default job made by the backfill: shown as t('jobs.defaultName')
+  name: string | null
   hourlyRate: number | null
   geonameid: number
-  paysShabbatPremium: boolean
+  // NULL = the user hasn't said yet (backfilled jobs)
+  paysShabbatPremium: boolean | null
+  color: string | null
   archived: boolean
 }
 
-export type JobInput = Omit<Job, 'id'>
+// color is assigned by the database and not editable yet
+export type JobInput = Omit<Job, 'id' | 'color'>
 
 export type ServiceType = 'none' | 'military' | 'national'
 
@@ -290,7 +294,8 @@ const rowToJob = (j: any): Job => ({
   name: j.name,
   hourlyRate: numOrNull(j.hourly_rate),
   geonameid: j.geonameid,
-  paysShabbatPremium: j.pays_shabbat_premium,
+  paysShabbatPremium: j.pays_shabbat_premium ?? null,
+  color: j.color ?? null,
   archived: j.archived,
 })
 /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -317,7 +322,7 @@ const shiftToRow = (shift: Omit<Shift, 'id'>) => ({
 })
 
 const jobToRow = (job: JobInput) => ({
-  name: job.name.trim(),
+  name: job.name?.trim() || null,
   hourly_rate: job.hourlyRate,
   geonameid: job.geonameid,
   pays_shabbat_premium: job.paysShabbatPremium,

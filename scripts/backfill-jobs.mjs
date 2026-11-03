@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 // Backfill: one default job per user, attach existing shifts to it, and
 // store each hourly shift's rate (undoing the x1.5 baked into base_salary).
+// The default job has name NULL (the app shows a translated "Main job"),
+// pays_shabbat_premium NULL (the user is asked in the app) and the first
+// palette color (set by the jobs_assign_color trigger).
 //
 //   DATABASE_URL=postgres://... node scripts/backfill-jobs.mjs            # dry run (default)
 //   DATABASE_URL=postgres://... node scripts/backfill-jobs.mjs --dry-run  # same
@@ -23,7 +26,6 @@ if (APPLY && args.has('--dry-run')) {
   console.error('Pass either --apply or --dry-run, not both.')
   process.exit(2)
 }
-const DEFAULT_JOB_NAME = 'עבודה ראשית'
 
 const url = process.env.DATABASE_URL
 if (!url) {
@@ -74,7 +76,12 @@ try {
     where s.salary_type = 'hourly' and s.used_150 and s.hours > 0
     order by s.date desc`)
 
-  const bucket = (r) => (r < 1.2 ? '~1.0 (pre-multiplier)' : r < 1.8 ? '~1.5 (post-multiplier)' : r < 2.6 ? '~2.25 (inflated by edit bug)' : 'other')
+  const near = (r, target) => Math.abs(r - target) <= 0.05
+  const bucket = (r) =>
+    near(r, 1.0) ? '~1.0 (pre-multiplier)'
+    : near(r, 1.5) ? '~1.5 (post-multiplier)'
+    : near(r, 2.25) ? '~2.25 (inflated by edit bug)'
+    : 'other (likely a different rate that day)'
   const counts = {}
   for (const v of verify) counts[bucket(v.ratio)] = (counts[bucket(v.ratio)] ?? 0) + 1
   console.log(`1. base_salary check: ${verify.length} used_150 shifts comparable to the user's usual rate`)
@@ -84,9 +91,12 @@ try {
 
   // ~2.25 rows are post-multiplier too (x1.5 applied twice by the old
   // edit form); the backfill leaves their rate NULL for review.
-  const post = (counts['~1.5 (post-multiplier)'] ?? 0) + (counts['~2.25 (inflated by edit bug)'] ?? 0)
+  // "other" rows are fine on their own: base_salary / hours / 1.5 still
+  // gives that day's rate (e.g. 67.50 / 1.5 = 45 after a rate change).
+  // Only a pattern of them is suspicious: stop if they're the majority.
   const pre = counts['~1.0 (pre-multiplier)'] ?? 0
-  if (verify.length > 0 && (pre > 0 || post / verify.length < 0.8)) {
+  const other = counts['other (likely a different rate that day)'] ?? 0
+  if (pre > 0 || (verify.length > 0 && other / verify.length > 0.5)) {
     await fail('base_salary on used_150 shifts is not consistently post-multiplier. Review the examples above before backfilling.')
   }
 
@@ -112,11 +122,11 @@ try {
 
   // ── 3. One default job per user who has none ─────────────────────
   const { rows: newJobs } = await client.query(`
-    insert into public.jobs (user_id, name, hourly_rate)
-    select r.user_id, $1, r.rate
+    insert into public.jobs (user_id, name, hourly_rate, pays_shabbat_premium)
+    select r.user_id, null, r.rate, null
     from _user_rate r
     where not exists (select 1 from public.jobs j where j.user_id = r.user_id)
-    returning user_id, hourly_rate::float`, [DEFAULT_JOB_NAME])
+    returning user_id, hourly_rate::float, color`)
   console.log(`\n2. Jobs to create: ${newJobs.length}`)
   console.table(newJobs.slice(0, 20))
 
@@ -133,6 +143,7 @@ try {
   // ── 5. Per-shift hourly rate (hourly shifts only) ────────────────
   // A used_150 shift still ~1.5x the usual rate after dividing was
   // inflated by the old edit form: left NULL for manual review.
+  // Any other difference from the usual rate is kept as that shift's rate.
   const rated = await client.query(`
     update public.shifts s
     set hourly_rate = d.rate

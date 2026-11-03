@@ -5,10 +5,15 @@
 create table if not exists public.jobs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  name text not null check (char_length(name) between 1 and 80),
+  -- NULL = the default job made by the backfill; the app shows a
+  -- translated name ("Main job" / "עבודה ראשית") until the user renames it.
+  name text check (name is null or char_length(name) between 1 and 80),
   hourly_rate numeric(10, 2) check (hourly_rate is null or hourly_rate >= 0),
   geonameid integer not null default 293397, -- Tel Aviv
-  pays_shabbat_premium boolean not null default true,
+  -- NULL = not answered yet (backfilled jobs). Jobs created in the app default to true.
+  pays_shabbat_premium boolean default true,
+  -- Hex color for job tags. Filled by jobs_assign_color() when not given.
+  color text check (color is null or color ~ '^#[0-9A-Fa-f]{6}$'),
   archived boolean not null default false,
   created_at timestamptz not null default now(),
   -- Lets shifts reference (id, user_id) so a shift can only point at a job
@@ -17,6 +22,35 @@ create table if not exists public.jobs (
 );
 
 create index if not exists jobs_user_id_idx on public.jobs (user_id);
+
+-- Palette for job colors, cycled per user in creation order (archived jobs
+-- count too, so colors don't shift when a job is archived). Mid-tone
+-- colors that stay readable on light and dark backgrounds.
+-- Keep in sync with JOB_COLOR_PALETTE in src/utils/jobColors.ts.
+create or replace function public.jobs_assign_color()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  palette text[] := array[
+    '#6366F1', '#0EA5E9', '#10B981', '#F59E0B',
+    '#F43F5E', '#D946EF', '#14B8A6', '#F97316'
+  ];
+  existing integer;
+begin
+  if new.color is null then
+    select count(*) into existing from public.jobs where user_id = new.user_id;
+    new.color := palette[(existing % array_length(palette, 1)) + 1];
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists jobs_assign_color on public.jobs;
+create trigger jobs_assign_color
+  before insert on public.jobs
+  for each row execute function public.jobs_assign_color();
 
 alter table public.jobs enable row level security;
 
