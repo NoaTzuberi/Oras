@@ -71,3 +71,6 @@
 
 /* Week pattern: "Custom" / "מותאם אישית" is the longest label, so it gets more room (one line at 375px) */
 .job-editor .toggle-row .toggle-btn:last-child { flex: 1.4; }
+
+/* Lands below the fixed top bar when scrolled to from What's New */
+.settings-section--jobs { scroll-margin-top: calc(96px + env(safe-area-inset-top)); }

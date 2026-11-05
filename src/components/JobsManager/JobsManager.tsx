@@ -298,7 +298,8 @@ export const JobsManager = () => {
     )
 
   return (
-    <div className="settings-section">
+    // id: anchor for "Review my jobs" in What's New (/settings#jobs)
+    <div id="jobs" className="settings-section settings-section--jobs">
       <label className="settings-label">{t('jobs.title')}</label>
 
       {active.length === 0 && editing !== 'new' && (

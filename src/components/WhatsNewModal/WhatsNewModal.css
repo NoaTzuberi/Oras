@@ -98,6 +98,9 @@
 
 .whats-new__footer {
   flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 12px 20px 20px;
   border-top: 1px solid rgba(196, 181, 253, 0.25);
 }
@@ -117,3 +120,50 @@
 }
 
 .whats-new__btn:focus-visible { outline: 2px solid #4f46e5; outline-offset: 2px; }
+
+.whats-new__btn--secondary {
+  padding: 11px;
+  background: transparent;
+  color: #6d28d9;
+  box-shadow: none;
+}
+
+.whats-new__checklist {
+  margin: 6px 0 8px;
+  padding-inline-start: 18px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #4b5079;
+}
+
+/* Earlier updates: collapsed for users who saw the previous version */
+.whats-new__earlier {
+  border-top: 1px solid rgba(196, 181, 253, 0.25);
+  padding-top: 12px;
+}
+
+.whats-new__earlier-title {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6d28d9;
+  list-style: none;
+}
+
+/* Own marker: always at the start of the line, pointing the reading direction (the native one ignores RTL) */
+.whats-new__earlier-title::-webkit-details-marker { display: none; }
+.whats-new__earlier-title::before {
+  content: '▸';
+  display: inline-block;
+  margin-inline-end: 6px;
+  transition: transform 150ms var(--ease-out);
+}
+html[dir="rtl"] .whats-new__earlier-title::before { transform: scaleX(-1); }
+.whats-new__earlier[open] > .whats-new__earlier-title::before { transform: rotate(90deg); }
+
+.whats-new__earlier-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 12px;
+}

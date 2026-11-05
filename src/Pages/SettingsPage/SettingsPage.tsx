@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -28,6 +29,13 @@ export const SettingsPage = () => {
   const [confirming, setConfirming] = useState(false)
   // Reopened from here; doesn't touch the "seen" flag
   const [showWhatsNew, setShowWhatsNew] = useState(false)
+  const location = useLocation()
+
+  // "Review my jobs" in What's New lands here as /settings#jobs
+  const scrollToJobs = () => document.getElementById('jobs')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  useEffect(() => {
+    if (location.hash === '#jobs') requestAnimationFrame(scrollToJobs)
+  }, [location.hash, location.key])
 
   const today = periodOf(new Date())
   const currentYear = today.year
@@ -334,7 +342,13 @@ export const SettingsPage = () => {
         <button type="button" className="whats-new-link" onClick={() => setShowWhatsNew(true)}>
           ✨ {t('whatsNew.reopen')}
         </button>
-        {showWhatsNew && <WhatsNewModal onClose={() => setShowWhatsNew(false)} />}
+        {/* Reopened from Settings: doesn't change whats_new_seen_at */}
+        {showWhatsNew && (
+          <WhatsNewModal
+            onLater={() => setShowWhatsNew(false)}
+            onReviewJobs={() => { setShowWhatsNew(false); requestAnimationFrame(scrollToJobs) }}
+          />
+        )}
 
       </div>
       <BottomNavBar />

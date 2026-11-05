@@ -5,7 +5,7 @@ import { historyWindow } from '../utils/dates'
 import { pickLastUsedJobId } from '../utils/jobs'
 import { parseLocalISODate } from '../utils/localDate'
 import { calcTaxInfo, periodOf, type TaxInfo } from '../tax/calc'
-import { shouldShowWhatsNew } from '../utils/whatsNew'
+import { earlierUpdatesExpanded, shouldShowWhatsNew } from '../utils/whatsNew'
 import { childrenToStored, parseStoredChildren, type Child, type ParentColumn } from '../tax/children'
 import type { WeekPattern } from '../utils/overtime'
 
@@ -99,6 +99,8 @@ type ShiftsContextType = {
   loadingData: boolean
   /** The one-time "What's New" modal should show (see the whats_new_seen_at migration) */
   whatsNewPending: boolean
+  /** "Earlier updates" starts open: the user never saw the previous version */
+  whatsNewEarlierExpanded: boolean
   markWhatsNewSeen: () => Promise<void>
   filteredShifts: Shift[]
 selectedMonth: Date
@@ -530,7 +532,7 @@ const filteredShifts = shifts.filter(shift => {
 
   const taxInfo = calcTaxInfo(userProfile, filteredShifts, jobs, periodOf(selectedMonth))
 
-  // Only for users who already had shifts; the migration marks everyone else as seen
+  // Users with shifts who haven't seen this version (see WHATS_NEW_RELEASED_AT)
   const whatsNewPending = shouldShowWhatsNew({
     loading: loadingData, seenAt: whatsNewSeenAt, shiftCount, loadedShifts: shifts.length,
   })
@@ -574,6 +576,7 @@ const filteredShifts = shifts.filter(shift => {
       taxInfo,
       loadingData,
       whatsNewPending,
+      whatsNewEarlierExpanded: earlierUpdatesExpanded(whatsNewSeenAt),
       markWhatsNewSeen,
     }}
   >

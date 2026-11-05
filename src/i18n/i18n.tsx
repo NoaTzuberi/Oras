@@ -246,7 +246,24 @@ const resources = {
       },
 
       whatsNew: {
-        title: "✨ Oras התעדכנה!",
+        title: "✨ חדש ב-Oras: שעות נוספות אוטומטיות",
+        overtime: {
+          icon: "⏱",
+          title: "שעות נוספות מחושבות לבד",
+          body: "אחרי יום העבודה הרגיל, השעתיים הראשונות מחושבות ב-125%, ומהשעה השלישית ב-150%. בשבת: 175% ו-200%. במשמרת לילה (לפחות שעתיים בין 22:00 ל-06:00), השעות הנוספות מתחילות כבר אחרי 7 שעות."
+        },
+        jobsIntro: "כדי שהחישוב יתאים לתלוש שלכם, היכנסו להגדרות ← העבודות שלי ובדקו בכל עבודה:",
+        jobsChecklist: [
+          "תעריף שעתי",
+          "עיר (לזמני כניסת ויציאת שבת)",
+          "האם המעסיק משלם 150% בשבת",
+          "שבוע של 5 או 6 ימים, ואם אתם יודעים, איזה יום מקוצר",
+          "הפרשה לפנסיה וטיפים בתלוש"
+        ],
+        multipleJobs: "עובדים ביותר ממקום אחד? הוסיפו כל עבודה בנפרד.",
+        unchanged: "המשמרות הקיימות שלכם לא השתנו. השעות הנוספות יחושבו על משמרות חדשות, או כשתבחרו לחשב משמרת ישנה מחדש.",
+        earlierTitle: "עדכונים קודמים",
+        // The previous release, shown under "Earlier updates"
         items: [
           {
             icon: "🕯",
@@ -269,9 +286,8 @@ const resources = {
             body: "נקודות הזיכוי מחושבות עכשיו לפי שנת הלידה של כל ילד. אם יש לך ילדים, היכנסו להגדרות ואשרו את שנות הלידה."
           }
         ],
-        unchanged: "המשמרות הקיימות שלך לא השתנו. אם תרצו, אפשר לחשב משמרת ישנה מחדש בשיטה החדשה דרך מסך העריכה.",
-        feedback: "מצאתם משהו שלא נראה נכון? נשמח לשמוע 💜",
-        gotIt: "הבנתי",
+        reviewJobs: "לעדכון העבודות",
+        later: "אחר כך",
         reopen: "מה חדש ב-Oras"
       },
 
@@ -640,7 +656,24 @@ const resources = {
       },
 
       whatsNew: {
-        title: "✨ Oras has been updated!",
+        title: "✨ New in Oras: automatic overtime",
+        overtime: {
+          icon: "⏱",
+          title: "Overtime, calculated for you",
+          body: "After your regular work day, the first 2 hours are paid at 125%, and from the 3rd hour at 150%. On Shabbat: 175% and 200%. On a night shift (at least 2 hours between 22:00 and 06:00), overtime starts after just 7 hours."
+        },
+        jobsIntro: "To match your payslip, go to Settings → My jobs and check for each job:",
+        jobsChecklist: [
+          "Hourly rate",
+          "City (for Shabbat start and end times)",
+          "Whether your employer pays 150% on Shabbat",
+          "A 5- or 6-day week and, if you know it, which day is the short day",
+          "Pension contribution and tips on the payslip"
+        ],
+        multipleJobs: "Work in more than one place? Add each job separately.",
+        unchanged: "Your existing shifts haven't changed. Overtime is calculated for new shifts, or when you choose to recalculate an old shift.",
+        earlierTitle: "Earlier updates",
+        // The previous release, shown under "Earlier updates"
         items: [
           {
             icon: "🕯",
@@ -663,9 +696,8 @@ const resources = {
             body: "Credit points are now calculated from each child's birth year. If you have children, go to Settings and confirm their birth years."
           }
         ],
-        unchanged: "Your existing shifts haven't changed. If you'd like, you can recalculate an old shift with the new method from its edit screen.",
-        feedback: "Found something that doesn't look right? We'd love to hear from you 💜",
-        gotIt: "Got it",
+        reviewJobs: "Review my jobs",
+        later: "Later",
         reopen: "What's new in Oras"
       },
 
