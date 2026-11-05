@@ -37,6 +37,7 @@ const born = (birthYear: number) => ({ birthYear, estimated: false })
 const job = (over: Partial<Job> = {}): Job => ({
   id: 'j1', name: 'Cafe', hourlyRate: 50, geonameid: 293397, paysShabbatPremium: true,
   color: null, archived: false, pensionActive: true, pensionEmployeePct: 6, tipsInPayslip: true,
+  weekPattern: null, customDailyThresholdHours: null, overtimeEnabled: null, shortDayWeekday: null,
   ...over,
 })
 const noPension = job({ pensionActive: false })
@@ -47,6 +48,8 @@ const shift = (baseSalary: number, tips = 0, jobId: string | null = 'j1'): Shift
   isShabbatOrHoliday: false, used150: false,
   jobId, hourlyRate: null, regularHours: null, shabbatHours: null,
   shabbatPremiumApplied: null, shabbatVerified: null,
+  overtimeCalculated: null, dailyThresholdMinutes: null, isNightShift: null,
+  overtimeMinutes125: null, overtimeMinutes150: null, shabbatOtMinutes175: null, shabbatOtMinutes200: null,
 })
 
 describe('tax year figures', () => {

@@ -7,6 +7,7 @@ import { parseLocalISODate } from '../utils/localDate'
 import { calcTaxInfo, periodOf, type TaxInfo } from '../tax/calc'
 import { shouldShowWhatsNew } from '../utils/whatsNew'
 import { childrenToStored, parseStoredChildren, type Child, type ParentColumn } from '../tax/children'
+import type { WeekPattern } from '../utils/overtime'
 
 export type Shift = {
   id: string
@@ -27,6 +28,15 @@ export type Shift = {
   shabbatHours: number | null
   shabbatPremiumApplied: boolean | null
   shabbatVerified: boolean | null
+  // Added with overtime. All NULL on shifts saved before that: they keep
+  // the previous calculation (see utils/shiftPay overtimeColumns).
+  overtimeCalculated: boolean | null
+  dailyThresholdMinutes: number | null
+  isNightShift: boolean | null
+  overtimeMinutes125: number | null
+  overtimeMinutes150: number | null
+  shabbatOtMinutes175: number | null
+  shabbatOtMinutes200: number | null
 }
 
 export type Job = {
@@ -43,6 +53,11 @@ export type Job = {
   pensionActive: boolean | null
   pensionEmployeePct: number | null
   tipsInPayslip: boolean | null
+  // Overtime settings. NULL = the default (5-day week, OT on, short day Thursday).
+  weekPattern: WeekPattern | null
+  customDailyThresholdHours: number | null
+  overtimeEnabled: boolean | null
+  shortDayWeekday: number | null
 }
 
 // color is assigned by the database and not editable yet
@@ -169,6 +184,13 @@ const rowToShift = (s: any): Shift => ({
   shabbatHours: numOrNull(s.shabbat_hours),
   shabbatPremiumApplied: s.shabbat_premium_applied ?? null,
   shabbatVerified: s.shabbat_verified ?? null,
+  overtimeCalculated: s.overtime_calculated ?? null,
+  dailyThresholdMinutes: numOrNull(s.daily_threshold_minutes),
+  isNightShift: s.is_night_shift ?? null,
+  overtimeMinutes125: numOrNull(s.overtime_minutes_125),
+  overtimeMinutes150: numOrNull(s.overtime_minutes_150),
+  shabbatOtMinutes175: numOrNull(s.shabbat_ot_minutes_175),
+  shabbatOtMinutes200: numOrNull(s.shabbat_ot_minutes_200),
 })
 
 const rowToJob = (j: any): Job => ({
@@ -182,6 +204,10 @@ const rowToJob = (j: any): Job => ({
   pensionActive: j.pension_active ?? null,
   pensionEmployeePct: numOrNull(j.pension_employee_pct),
   tipsInPayslip: j.tips_in_payslip ?? null,
+  weekPattern: j.week_pattern ?? null,
+  customDailyThresholdHours: numOrNull(j.custom_daily_threshold_hours),
+  overtimeEnabled: j.overtime_enabled ?? null,
+  shortDayWeekday: numOrNull(j.short_day_weekday),
 })
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
@@ -204,6 +230,13 @@ const shiftToRow = (shift: Omit<Shift, 'id'>) => ({
   shabbat_hours: shift.shabbatHours,
   shabbat_premium_applied: shift.shabbatPremiumApplied,
   shabbat_verified: shift.shabbatVerified,
+  overtime_calculated: shift.overtimeCalculated,
+  daily_threshold_minutes: shift.dailyThresholdMinutes,
+  is_night_shift: shift.isNightShift,
+  overtime_minutes_125: shift.overtimeMinutes125,
+  overtime_minutes_150: shift.overtimeMinutes150,
+  shabbat_ot_minutes_175: shift.shabbatOtMinutes175,
+  shabbat_ot_minutes_200: shift.shabbatOtMinutes200,
 })
 
 const jobToRow = (job: JobInput) => ({
@@ -215,6 +248,10 @@ const jobToRow = (job: JobInput) => ({
   pension_active: job.pensionActive,
   pension_employee_pct: job.pensionEmployeePct,
   tips_in_payslip: job.tipsInPayslip,
+  week_pattern: job.weekPattern,
+  custom_daily_threshold_hours: job.customDailyThresholdHours,
+  overtime_enabled: job.overtimeEnabled,
+  short_day_weekday: job.shortDayWeekday,
 })
 
 const LAST_JOB_KEY = 'oras.lastJobId'

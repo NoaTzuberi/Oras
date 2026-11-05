@@ -214,6 +214,8 @@
 
 .card--breakdown { text-align: start; cursor: default; }
 .card--breakdown h3 { text-align: center; }
+.card--overtime .card-value,
+.card--overtime .card-subtitle { text-align: center; }
 
 .job-breakdown {
   list-style: none;

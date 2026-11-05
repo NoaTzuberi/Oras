@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildShiftTimeline, jerusalemTime, jerusalemWeekdayIndex, overlappingWindow } from './shabbatTimeline'
+import { buildPayTimeline, buildShiftTimeline, jerusalemTime, jerusalemWeekdayIndex, overlappingWindow } from './shabbatTimeline'
 
 // Winter: Israel is UTC+2
 const at = (iso: string) => new Date(`${iso}+02:00`)
@@ -51,5 +51,38 @@ describe('header helpers', () => {
     expect(jerusalemTime(shabbat.start)).toBe('16:34')
     expect(jerusalemWeekdayIndex(shabbat.start)).toBe(5)
     expect(jerusalemWeekdayIndex(shabbat.end)).toBe(6)
+  })
+})
+
+describe('buildPayTimeline', () => {
+  const seg = (from: string, to: string, shabbat: boolean, tier: 0 | 1 | 2) => {
+    const start = at(from), end = at(to)
+    return { start, end, minutes: (end.getTime() - start.getTime()) / 60000, shabbat, tier }
+  }
+
+  it('Friday 13:00-00:00: one bar part per pay tier, Shabbat and overtime ticks', () => {
+    const segments = [
+      seg('2026-11-06T13:00', '2026-11-06T16:34', false, 0),
+      seg('2026-11-06T16:34', '2026-11-06T20:00', true, 0),
+      seg('2026-11-06T20:00', '2026-11-06T22:00', true, 1),
+      seg('2026-11-06T22:00', '2026-11-07T00:00', true, 2),
+    ]
+    const t = buildPayTimeline(at('2026-11-06T13:00'), at('2026-11-07T00:00'), segments, [shabbat])
+    expect(t.segments.map(s => s.kind)).toEqual(['regular', 'shabbat', 'shabbatOt175', 'shabbatOt200'])
+    expect(t.segments[3].to).toBe(100)
+    expect(t.ticks.map(k => k.kind)).toEqual(['in', 'ot', 'ot'])
+    expect(t.ticks[1].pct).toBeCloseTo((420 / 660) * 100)
+  })
+
+  it('overtime crossing into Shabbat: one Shabbat tick, no extra overtime tick', () => {
+    const segments = [
+      seg('2026-11-06T06:00', '2026-11-06T14:36', false, 0),
+      seg('2026-11-06T14:36', '2026-11-06T16:34', false, 1),
+      seg('2026-11-06T16:34', '2026-11-06T16:36', true, 1),
+      seg('2026-11-06T16:36', '2026-11-06T18:00', true, 2),
+    ]
+    const t = buildPayTimeline(at('2026-11-06T06:00'), at('2026-11-06T18:00'), segments, [shabbat])
+    expect(t.segments.map(s => s.kind)).toEqual(['regular', 'ot125', 'shabbatOt175', 'shabbatOt200'])
+    expect(t.ticks.map(k => k.kind)).toEqual(['ot', 'in', 'ot'])
   })
 })

@@ -3,16 +3,19 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { BottomNavBar } from '../../components/BottomNavBar/BottomNavBar'
 import './AddShiftPage.css'
-import { useShifts } from '../../context/ShiftContext'
+import { useShifts, type Shift } from '../../context/ShiftContext'
 import { InlineError } from '../../components/InlineError/InlineError'
 import { JobChips } from '../../components/JobChips/JobChips'
 import { DateField } from '../../components/DateField/DateField'
-import { ShabbatPaySection } from '../../components/ShabbatPaySection/ShabbatPaySection'
+import { PayBreakdownSection } from '../../components/PayBreakdownSection/PayBreakdownSection'
+import { DayUpdatesNotice } from '../../components/DayUpdatesNotice/DayUpdatesNotice'
 import { jerusalemISODate } from '../../utils/dates'
 import { DEFAULT_GEONAMEID } from '../../utils/cities'
 import { jobToInput } from '../../utils/jobs'
 import { resolvePremium } from '../../utils/shabbat'
-import { computeShiftPay, hasShabbatHours } from '../../utils/shiftPay'
+import { computeShiftPay, hasPayBreakdown, NEW_SHIFT_KEY } from '../../utils/shiftPay'
+import { resolveOvertimeSettings } from '../../utils/overtime'
+import { applyDayUpdates, planDayUpdates, storedPayFields, workDayOthers } from '../../utils/workDay'
 import { formatHM, formatMoney } from '../../utils/format'
 import { useShabbatTimes } from '../../hooks/useShabbatTimes'
 
@@ -20,7 +23,7 @@ export const AddShiftPage = () => {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
   const timeId = useId()
-  const { addShift, updateJob, userProfile, jobs, lastUsedJobId } = useShifts()
+  const { addShift, updateShift, updateJob, userProfile, jobs, shifts, lastUsedJobId } = useShifts()
 
   const [date, setDate] = useState(() => jerusalemISODate())
   const [startTime, setStartTime] = useState('')
@@ -64,6 +67,8 @@ export const AddShiftPage = () => {
     totalSalary: totalSalary ? parseFloat(totalSalary) : null,
     premiumApplied,
     shabbat: lookup,
+    // Other shifts of this job on this date count toward the day's overtime
+    overtime: { settings: resolveOvertimeSettings(selectedJob), otherShifts: workDayOthers(shifts, { jobId, date }) },
   })
   const hours = pay?.hours ?? 0
   const calculatedSalary = pay?.baseSalary ?? null
@@ -84,12 +89,36 @@ export const AddShiftPage = () => {
     ? parseFloat((calculatedSalary + (parseFloat(tips) || 0)).toFixed(2))
     : null
 
+  const draft: Omit<Shift, 'id'> | null = pay && {
+    date,
+    startTime,
+    endTime,
+    salaryType,
+    baseSalary: calculatedSalary ?? 0,
+    tips: parseFloat(tips) || 0,
+    totalEarnings: totalWithTips ?? 0,
+    jobId,
+    hourlyRate: salaryType === 'hourly' ? parseFloat(hourlyRate) : null,
+    ...storedPayFields(pay, salaryType, premiumApplied),
+  }
+
+  // Earlier-saved shifts of the same work day whose overtime moves because of this one
+  const dayUpdates = draft
+    ? planDayUpdates({
+        after: [...shifts, { ...draft, id: NEW_SHIFT_KEY }],
+        days: [{ jobId, date }],
+        changedId: NEW_SHIFT_KEY,
+        jobs,
+        lookupFor: () => lookup,
+      })
+    : []
+
   const handleSubmit = async () => {
   setSubmitError('')
 
   if (!startTime || !endTime) return setSubmitError(t('shiftForm.alertEnterTimes'))
   if (startTime === endTime) return setSubmitError(t('shiftForm.alertSameTimes'))
-  if (!pay) return setSubmitError(t('shiftForm.alertEnterTimes'))
+  if (!pay || !draft) return setSubmitError(t('shiftForm.alertEnterTimes'))
   // Saving with unknown Shabbat times is allowed only after the request failed
   // (then it's marked unverified), not while it's still loading.
   if (lookup.status === 'loading') return setSubmitError(t('shabbat.waitForTimes'))
@@ -99,27 +128,9 @@ export const AddShiftPage = () => {
   setSubmitting(true)
 
   try {
-    await addShift({
-      date,
-      startTime,
-      endTime,
-      hours,
-      salaryType,
-      baseSalary: calculatedSalary ?? 0,
-      tips: parseFloat(tips) || 0,
-      totalEarnings: totalWithTips ?? 0,
-      isShabbatOrHoliday: pay.isShabbatOrHoliday,
-      // Old column, still written for older app versions: true only when
-      // the x1.5 was actually used on some hours.
-      used150: pay.premiumUsed,
-      jobId,
-      hourlyRate: salaryType === 'hourly' ? parseFloat(hourlyRate) : null,
-      regularHours: pay.split?.regularHours ?? null,
-      shabbatHours: pay.split?.shabbatHours ?? null,
-      // The intended premium (also kept when unverified, for re-checking later)
-      shabbatPremiumApplied: salaryType === 'hourly' ? premiumApplied : null,
-      shabbatVerified: pay.verified,
-    })
+    await addShift(draft)
+    // The new shift is saved; a failure here only leaves another shift's overtime stale
+    if (!(await applyDayUpdates(updateShift, dayUpdates))) alert(t('pay.dayUpdateFailed'))
 
     navigate('/shifts')
   } catch (e) {
@@ -198,12 +209,11 @@ export const AddShiftPage = () => {
               </div>
             )}
 
-            <ShabbatPaySection
+            <PayBreakdownSection
               lookup={lookup}
               onRetry={retry}
               pay={pay}
               shift={{ date, startTime, endTime }}
-              rate={hourlyRate ? parseFloat(hourlyRate) : null}
               salaryType={salaryType}
               geonameid={geonameid}
               job={selectedJob}
@@ -213,8 +223,8 @@ export const AddShiftPage = () => {
               answering={answeringPremium}
             />
 
-            {/* With Shabbat hours the total is at the bottom of the Shabbat card */}
-            {calculatedSalary !== null && !hasShabbatHours(pay) && (
+            {/* With Shabbat or overtime hours the total is at the bottom of the pay card */}
+            {calculatedSalary !== null && !hasPayBreakdown(pay) && (
               <div className="calc-result">
                 <span className="calc-label">{t('shabbat.baseSalaryHours', { hours: formatHM(hours) })}</span>
                 <span className="calc-value">{formatMoney(calculatedSalary)}</span>
@@ -239,6 +249,8 @@ export const AddShiftPage = () => {
               )}
             </div>
           )}
+
+          <DayUpdatesNotice updates={dayUpdates} />
 
           {submitError && <InlineError>{submitError}</InlineError>}
 

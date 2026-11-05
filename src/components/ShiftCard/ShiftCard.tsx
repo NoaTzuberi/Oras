@@ -9,13 +9,23 @@ import { ShiftEditForm } from '../ShiftEditForm/ShiftEditForm'
 import { jobDisplayName } from '../../utils/jobs'
 import { parseLocalISODate } from '../../utils/localDate'
 import { jobColor, shade, withAlpha } from '../../utils/jobColors'
+import { DEFAULT_GEONAMEID } from '../../utils/cities'
+import { fetchShabbatLookup } from '../../utils/shabbatApi'
+import { applyDayUpdates, canRecalcWithDay, planDayUpdates, workDayOthers } from '../../utils/workDay'
+import { bucketsText, dayUpdateMessage } from '../../utils/payLabels'
+import { overtimeMinutes } from '../../utils/overtime'
+import { storedBuckets } from '../../utils/overtimeStats'
 
 // ── Component ─────────────────────────────────────
 
 export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSProperties }) => {
   const { t, i18n } = useTranslation()
-  const { deleteShift, jobs } = useShifts()
+  const { deleteShift, updateShift, jobs, shifts } = useShifts()
   const shiftJob = jobs.find(j => j.id === shift.jobId) ?? null
+
+  // Minutes per pay rate, for shifts saved with overtime
+  const buckets = storedBuckets(shift)
+  const showOvertime = buckets != null && overtimeMinutes(buckets) > 0
 
   const [open, setOpen] = useState(false)
   const [editMode, setEditMode] = useState(false)
@@ -122,6 +132,14 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                         {shift.shabbatPremiumApplied ? ' ×1.5' : ''}
                       </p>
                     )}
+                    {showOvertime && (
+                      <p className="shift-modal__hours-caption">
+                        {bucketsText(t, buckets, shift.salaryType === 'hourly' && shift.shabbatPremiumApplied === true)}
+                      </p>
+                    )}
+                    {showOvertime && shift.isNightShift && (
+                      <p className="shift-modal__hours-caption">🌙 {t('pay.nightShift')}</p>
+                    )}
                     {shift.shabbatVerified === false && (
                       <p className="shift-modal__hours-caption shift-modal__unverified">⚠️ {t('shabbat.unverified')}</p>
                     )}
@@ -164,11 +182,26 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                       className="shift-delete-btn"
                       onClick={async (e) => {
                         e.stopPropagation()
-                        if (!confirm(t("shiftCard.confirmDelete"))) return
-
                         setActionError('')
+
+                        // Other shifts of the same work day whose overtime changes once this one is gone
+                        const sameDayIds = new Set(workDayOthers(shifts, shift).map(o => o.key))
+                        const needsCheck = shifts.some(s => sameDayIds.has(s.id) && canRecalcWithDay(s))
+                        // Cached per week, so usually instant. If it fails, the other shifts are left as they are.
+                        const lookup = needsCheck ? await fetchShabbatLookup(shift.date, shiftJob?.geonameid ?? DEFAULT_GEONAMEID) : null
+                        const updates = lookup ? planDayUpdates({
+                          after: shifts.filter(s => s.id !== shift.id),
+                          days: [{ jobId: shift.jobId, date: shift.date }],
+                          changedId: shift.id,
+                          jobs,
+                          lookupFor: () => lookup,
+                        }) : []
+                        const message = [t("shiftCard.confirmDelete"), ...updates.map(u => dayUpdateMessage(t, u))].join('\n\n')
+                        if (!confirm(message)) return
+
                         try {
                           await deleteShift(shift.id)
+                          if (!(await applyDayUpdates(updateShift, updates))) alert(t('pay.deleteDayUpdateFailed'))
                           setOpen(false)
                         } catch (err) {
                           console.error('Error deleting shift:', err)

@@ -1,5 +1,6 @@
 import { reportError } from '../lib/sentry'
-import { addDays, buildShabbatWindows, type HebcalTimeItem, type TimeWindow } from './shabbat'
+import { addDays, buildShabbatWindows, yomTovOn, type HebcalTimeItem, type TimeWindow } from './shabbat'
+import type { ShabbatLookup } from './shiftPay'
 
 export type ShabbatData = {
   windows: TimeWindow[]
@@ -67,6 +68,16 @@ export const fetchShabbatWindows = (date: string, geonameid: number, fetchImpl: 
   })
   cache.set(key, request)
   return request
+}
+
+/** The same as useShabbatTimes' lookup, for code outside a render (e.g. before a delete). Never rejects. */
+export const fetchShabbatLookup = async (date: string, geonameid: number): Promise<ShabbatLookup> => {
+  try {
+    const data = await fetchShabbatWindows(date, geonameid)
+    return { status: 'ok', windows: data.windows, isYomTov: yomTovOn(data.items, date).length > 0 }
+  } catch {
+    return { status: 'error' }
+  }
 }
 
 /** For tests. */

@@ -12,6 +12,10 @@ export const newJobDefaults: JobInput = {
   pensionActive: true,
   pensionEmployeePct: DEFAULT_PENSION_EMPLOYEE_PCT,
   tipsInPayslip: true,
+  weekPattern: '5day',
+  customDailyThresholdHours: null,
+  overtimeEnabled: true,
+  shortDayWeekday: null,
 }
 
 export const jobToInput = (job: Job): JobInput => ({
@@ -23,6 +27,10 @@ export const jobToInput = (job: Job): JobInput => ({
   pensionActive: job.pensionActive,
   pensionEmployeePct: job.pensionEmployeePct,
   tipsInPayslip: job.tipsInPayslip,
+  weekPattern: job.weekPattern,
+  customDailyThresholdHours: job.customDailyThresholdHours,
+  overtimeEnabled: job.overtimeEnabled,
+  shortDayWeekday: job.shortDayWeekday,
 })
 
 /** The job's name, or the translated default name for the backfilled job. */

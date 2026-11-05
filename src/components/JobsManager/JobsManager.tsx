@@ -6,6 +6,7 @@ import { ISRAELI_CITIES, cityName } from '../../utils/cities'
 import { InlineError } from '../InlineError/InlineError'
 import { Switch } from '../Switch/Switch'
 import { jobTaxSettings } from '../../tax/calc'
+import { resolveOvertimeSettings, type WeekPattern } from '../../utils/overtime'
 import './JobsManager.css'
 
 
@@ -26,8 +27,15 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
   const [pensionActive, setPensionActive] = useState(defaults.pensionActive)
   const [pensionPct, setPensionPct] = useState(String(defaults.pensionPct))
   const [tipsInPayslip, setTipsInPayslip] = useState(defaults.tipsInPayslip)
+  const otDefaults = resolveOvertimeSettings(initial)
+  const [overtimeEnabled, setOvertimeEnabled] = useState(otDefaults.enabled)
+  const [weekPattern, setWeekPattern] = useState<WeekPattern>(otDefaults.weekPattern)
+  const [customThreshold, setCustomThreshold] = useState(initial.customDailyThresholdHours != null ? String(initial.customDailyThresholdHours) : '')
+  // NULL (the Thursday default) stays NULL unless the user picks a day
+  const [shortDay, setShortDay] = useState<number | null>(initial.shortDayWeekday)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const weekdayNames = t('jobs.weekdayNames', { returnObjects: true }) as string[]
 
   const handleSave = async () => {
     setError('')
@@ -36,6 +44,11 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
     if (parsedRate !== null && (isNaN(parsedRate) || parsedRate < 0)) return setError(t('jobs.errorRate'))
     const parsedPct = parseFloat(pensionPct)
     if (pensionActive && (isNaN(parsedPct) || parsedPct < 0 || parsedPct > 20)) return setError(t('jobs.errorPensionPct'))
+    const parsedThreshold = customThreshold.trim() === '' ? null : parseFloat(customThreshold)
+    const customUsed = overtimeEnabled && weekPattern === 'custom'
+    if (customUsed && (parsedThreshold === null || isNaN(parsedThreshold) || parsedThreshold < 1 || parsedThreshold > 24)) {
+      return setError(t('jobs.errorThreshold'))
+    }
 
     setSaving(true)
     try {
@@ -47,6 +60,11 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
         // Keep the stored % when pension is turned off, so turning it back on restores it
         pensionEmployeePct: isNaN(parsedPct) ? initial.pensionEmployeePct : parsedPct,
         tipsInPayslip,
+        overtimeEnabled,
+        weekPattern,
+        // Kept when another pattern is chosen, so switching back restores it
+        customDailyThresholdHours: customUsed ? parsedThreshold : initial.customDailyThresholdHours,
+        shortDayWeekday: shortDay,
       })
     } catch {
       setError(t('jobs.errorSaveFailed'))
@@ -138,6 +156,74 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
         hint={t('jobs.tipsInPayslipHint')}
       />
 
+      <Switch
+        className="ui-switch-row--list"
+        checked={overtimeEnabled}
+        onChange={setOvertimeEnabled}
+        label={t('jobs.overtimeEnabled')}
+        hint={t('jobs.overtimeHint')}
+      />
+
+      {overtimeEnabled && (
+        <>
+          <div className="job-editor__field">
+            <span className="switch-hint">{t('jobs.weekPattern')}</span>
+            <div className="toggle-row" role="radiogroup" aria-label={t('jobs.weekPattern')}>
+              {(['5day', '6day', 'custom'] as const).map(p => (
+                <button
+                  key={p}
+                  type="button"
+                  role="radio"
+                  aria-checked={weekPattern === p}
+                  className={`toggle-btn ${weekPattern === p ? 'toggle-btn--active' : ''}`}
+                  onClick={() => setWeekPattern(p)}
+                >
+                  {t(p === '5day' ? 'jobs.week5' : p === '6day' ? 'jobs.week6' : 'jobs.weekCustom')}
+                </button>
+              ))}
+            </div>
+            <span className="switch-hint">
+              {t(weekPattern === '5day' ? 'jobs.week5Hint' : weekPattern === '6day' ? 'jobs.week6Hint' : 'jobs.weekCustomHint')}
+            </span>
+          </div>
+
+          {weekPattern === '5day' && (
+            <label className="job-editor__field">
+              {/* An assumption, so say it plainly: the law leaves the day to the employer */}
+              <span className="switch-hint">
+                {t('jobs.shortDayAssumption', { day: weekdayNames[shortDay ?? otDefaults.shortDayWeekday] })}
+              </span>
+              <select
+                className="settings-input"
+                aria-label={t('jobs.shortDay')}
+                value={shortDay ?? otDefaults.shortDayWeekday}
+                onChange={e => setShortDay(Number(e.target.value))}
+              >
+                {weekdayNames.map((name, i) => <option key={i} value={i}>{name}</option>)}
+              </select>
+            </label>
+          )}
+
+          {weekPattern === 'custom' && (
+            <label className="job-editor__field">
+              <span className="switch-hint">{t('jobs.customThreshold')}</span>
+              <input
+                type="number"
+                className="settings-input"
+                value={customThreshold}
+                min={1}
+                max={24}
+                step={0.1}
+                placeholder="8.6"
+                onChange={e => setCustomThreshold(e.target.value)}
+              />
+            </label>
+          )}
+
+          <span className="switch-hint">{t('jobs.nightNote')}</span>
+        </>
+      )}
+
       {error && <InlineError>{error}</InlineError>}
 
       <div className="job-editor__actions">
@@ -192,6 +278,7 @@ export const JobsManager = () => {
               const tax = jobTaxSettings(job)
               return tax.pensionActive ? t('jobs.pensionOn', { pct: tax.pensionPct }) : t('jobs.pensionOff')
             })()}
+            {job.overtimeEnabled === false ? ` · ${t('jobs.overtimeOff')}` : ''}
           </span>
         </div>
         <div className="job-row__actions">

@@ -5,12 +5,15 @@ import { filterShiftsByJob, jobBreakdown, resolveJobFilter } from './jobFilter'
 const job = (id: string, archived = false): Job => ({
   id, name: id, hourlyRate: 50, geonameid: 293397, paysShabbatPremium: true, color: '#6366F1',
   archived, pensionActive: null, pensionEmployeePct: null, tipsInPayslip: null,
+  weekPattern: null, customDailyThresholdHours: null, overtimeEnabled: null, shortDayWeekday: null,
 })
 
 const shift = (id: string, jobId: string | null, hours: number, total: number): Shift => ({
   id, date: '2026-11-01', startTime: '08:00', endTime: '16:00', hours, salaryType: 'hourly',
   baseSalary: total, tips: 0, totalEarnings: total, isShabbatOrHoliday: false, used150: false,
   jobId, hourlyRate: 50, regularHours: null, shabbatHours: null, shabbatPremiumApplied: null, shabbatVerified: true,
+  overtimeCalculated: null, dailyThresholdMinutes: null, isNightShift: null,
+  overtimeMinutes125: null, overtimeMinutes150: null, shabbatOtMinutes175: null, shabbatOtMinutes200: null,
 })
 
 describe('resolveJobFilter', () => {

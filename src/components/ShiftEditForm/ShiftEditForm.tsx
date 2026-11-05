@@ -5,12 +5,16 @@ import { InlineError } from '../InlineError/InlineError'
 import { JobChips } from '../JobChips/JobChips'
 import { DateField } from '../DateField/DateField'
 import { Switch } from '../Switch/Switch'
-import { ShabbatPaySection } from '../ShabbatPaySection/ShabbatPaySection'
+import { PayBreakdownSection } from '../PayBreakdownSection/PayBreakdownSection'
+import { DayUpdatesNotice } from '../DayUpdatesNotice/DayUpdatesNotice'
 import { useShabbatTimes } from '../../hooks/useShabbatTimes'
 import { DEFAULT_GEONAMEID } from '../../utils/cities'
 import { jobToInput } from '../../utils/jobs'
 import { resolvePremium } from '../../utils/shabbat'
-import { computeShiftPay, hasShabbatHours } from '../../utils/shiftPay'
+import { computeShiftPay, hasPayBreakdown } from '../../utils/shiftPay'
+import { resolveOvertimeSettings } from '../../utils/overtime'
+import { affectsDay, applyDayUpdates, planDayUpdates, storedPayFields, workDayOthers } from '../../utils/workDay'
+import { bucketsText } from '../../utils/payLabels'
 import { formatHM, formatMoney } from '../../utils/format'
 import { shiftBaseRate } from '../../utils/shiftHelpers'
 import { initialPremiumOverride, isPreservedShift, preservedBasePay, recalcTriggered } from '../../utils/editShiftPay'
@@ -30,7 +34,7 @@ const money = (n: number | null | undefined) => (n == null ? '…' : formatMoney
 export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
   const { t, i18n } = useTranslation()
   const timeId = useId()
-  const { updateShift, updateJob, jobs } = useShifts()
+  const { updateShift, updateJob, jobs, shifts } = useShifts()
 
   const initialRate = (() => {
     const rate = shiftBaseRate(shift)
@@ -59,12 +63,22 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
   const geonameid = job?.geonameid ?? DEFAULT_GEONAMEID
   const { lookup, holidayNames, retry } = useShabbatTimes(date, geonameid)
   const premiumApplied = resolvePremium(premiumOverride, job?.paysShabbatPremium)
+  // The day the shift is moved away from (date or job changed): its other shifts' overtime changes too
+  const savedJob = jobs.find(j => j.id === shift.jobId) ?? null
+  const { lookup: savedDayLookup } = useShabbatTimes(shift.date, savedJob?.geonameid ?? DEFAULT_GEONAMEID)
 
   const rate = hourlyRate ? parseFloat(hourlyRate) : null
   const total = totalSalary ? parseFloat(totalSalary) : null
 
   // New calculation (used directly for verified shifts, and as the "after" preview)
-  const splitPay = computeShiftPay({ date, startTime, endTime, salaryType, rate, totalSalary: total, premiumApplied, shabbat: lookup })
+  const splitPay = computeShiftPay({
+    date, startTime, endTime, salaryType, rate, totalSalary: total, premiumApplied, shabbat: lookup,
+    overtime: {
+      settings: resolveOvertimeSettings(job),
+      otherShifts: workDayOthers(shifts, { id: shift.id, jobId, date }),
+      key: shift.id,
+    },
+  })
 
   // Old calculation for legacy/unverified shifts
   const preserved = isPreservedShift(shift)
@@ -79,6 +93,48 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
   const baseSalary = mode === 'preserved' ? oldBase : splitPay?.baseSalary ?? null
   const hours = mode === 'preserved' ? shift.hours : splitPay?.hours ?? 0
   const totalWithTips = baseSalary != null ? round2(baseSalary + (parseFloat(tips) || 0)) : null
+
+  const common = baseSalary != null && totalWithTips != null ? {
+    date, startTime, endTime, salaryType,
+    baseSalary,
+    tips: parseFloat(tips) || 0,
+    totalEarnings: totalWithTips,
+    jobId,
+    hourlyRate: salaryType === 'hourly' ? rate : null,
+  } : null
+
+  const fields: Omit<Shift, 'id'> | null = !common ? null : mode === 'preserved'
+    ? {
+        // Old calculation kept as stored
+        ...common,
+        hours: shift.hours,
+        isShabbatOrHoliday: shift.isShabbatOrHoliday,
+        used150: salaryType === 'hourly' && shift.salaryType === 'hourly' && shift.used150,
+        regularHours: shift.regularHours,
+        shabbatHours: shift.shabbatHours,
+        shabbatPremiumApplied: shift.shabbatPremiumApplied,
+        shabbatVerified: shift.shabbatVerified,
+        overtimeCalculated: shift.overtimeCalculated,
+        dailyThresholdMinutes: shift.dailyThresholdMinutes,
+        isNightShift: shift.isNightShift,
+        overtimeMinutes125: shift.overtimeMinutes125,
+        overtimeMinutes150: shift.overtimeMinutes150,
+        shabbatOtMinutes175: shift.shabbatOtMinutes175,
+        shabbatOtMinutes200: shift.shabbatOtMinutes200,
+      }
+    : splitPay ? { ...common, ...storedPayFields(splitPay, salaryType, premiumApplied) } : null
+
+  // Other shifts on the shift's day (before and after the edit) whose overtime moves.
+  // Preserved mode never changes date/times/job, so only the new calculation can.
+  const dayUpdates = fields && mode === 'split' && affectsDay(shift, fields)
+    ? planDayUpdates({
+        after: shifts.map(s => (s.id === shift.id ? { ...fields, id: shift.id } : s)),
+        days: [{ jobId: shift.jobId, date: shift.date }, { jobId, date }],
+        changedId: shift.id,
+        jobs,
+        lookupFor: d => (d.jobId === jobId && d.date === date ? lookup : savedDayLookup),
+      })
+    : []
 
   const handleJobChange = (id: string | null) => {
     setJobId(id)
@@ -123,43 +179,13 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
     if (salaryType === 'hourly' && !hourlyRate) return setError(t('shiftForm.alertEnterHourlyRate'))
     if (salaryType === 'total' && !totalSalary) return setError(t('shiftForm.alertEnterTotalSalary'))
     if (mode === 'split' && lookup.status === 'loading') return setError(t('shabbat.waitForTimes'))
-    if (baseSalary == null || totalWithTips == null) return setError(t('shiftForm.alertEnterTimes'))
-
-    const common = {
-      date, startTime, endTime, salaryType,
-      baseSalary,
-      tips: parseFloat(tips) || 0,
-      totalEarnings: totalWithTips,
-      jobId,
-      hourlyRate: salaryType === 'hourly' ? rate : null,
-    }
-
-    const fields = mode === 'preserved'
-      ? {
-          // Old calculation kept as stored
-          ...common,
-          hours: shift.hours,
-          isShabbatOrHoliday: shift.isShabbatOrHoliday,
-          used150: salaryType === 'hourly' && shift.salaryType === 'hourly' && shift.used150,
-          regularHours: shift.regularHours,
-          shabbatHours: shift.shabbatHours,
-          shabbatPremiumApplied: shift.shabbatPremiumApplied,
-          shabbatVerified: shift.shabbatVerified,
-        }
-      : {
-          ...common,
-          hours,
-          isShabbatOrHoliday: splitPay!.isShabbatOrHoliday,
-          used150: splitPay!.premiumUsed,
-          regularHours: splitPay!.split?.regularHours ?? null,
-          shabbatHours: splitPay!.split?.shabbatHours ?? null,
-          shabbatPremiumApplied: salaryType === 'hourly' ? premiumApplied : null,
-          shabbatVerified: splitPay!.verified,
-        }
+    if (!fields) return setError(t('shiftForm.alertEnterTimes'))
 
     setSaving(true)
     try {
       await updateShift(shift.id, fields)
+      // This shift is saved; a failure here only leaves another shift's overtime stale
+      if (!(await applyDayUpdates(updateShift, dayUpdates))) alert(t('pay.dayUpdateFailed'))
       onSaved()
     } catch (e) {
       console.error('Error saving shift:', e)
@@ -170,9 +196,9 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
 
   const legacyNote = shift.shabbatVerified === null
     ? (shift.used150 ? t('shiftEdit.legacyNote150') : t('shiftEdit.legacyNote'))
-    : t('shiftEdit.unverifiedNote')
-  const recalcLabel = shift.shabbatVerified === null ? t('shiftEdit.recalculate') : t('shiftEdit.recheck')
-  const afterSplit = splitPay?.split
+    : shift.shabbatVerified === false ? t('shiftEdit.unverifiedNote') : t('shiftEdit.preOvertimeNote')
+  const recalcLabel = shift.shabbatVerified === false ? t('shiftEdit.recheck') : t('shiftEdit.recalculate')
+  const afterReady = lookup.status === 'ok' && splitPay != null
 
   return (
     <>
@@ -257,8 +283,8 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
                   {recalcLabel}
                 </button>
               ) : lookup.status === 'error' ? (
-                <ShabbatPaySection
-                  lookup={lookup} onRetry={retry} pay={splitPay} shift={{ date, startTime, endTime }} rate={rate} salaryType={salaryType} geonameid={geonameid}
+                <PayBreakdownSection
+                  lookup={lookup} onRetry={retry} pay={splitPay} shift={{ date, startTime, endTime }} salaryType={salaryType} geonameid={geonameid}
                   job={job} premiumApplied={premiumApplied} onPremiumChange={handlePremiumChange}
                   onAnswerJobPremium={answerJobPremium} answering={answeringPremium}
                 />
@@ -272,9 +298,8 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
                   <div className="recalc-preview__row">
                     <span>{t('shiftEdit.after')}</span>
                     <span>
-                      {afterSplit
-                        ? t(premiumApplied && salaryType === 'hourly' ? 'shabbat.breakdownPremium' : 'shabbat.breakdownNoPremium',
-                            { regular: formatHM(afterSplit.regularHours), shabbat: formatHM(afterSplit.shabbatHours) })
+                      {afterReady
+                        ? bucketsText(t, splitPay.overtime.minutes, premiumApplied && salaryType === 'hourly')
                         : t('shabbat.loading')}
                       {' · '}{money(splitPay?.baseSalary)}
                     </span>
@@ -297,15 +322,15 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
               )}
             </div>
           ) : (
-            <ShabbatPaySection
-              lookup={lookup} onRetry={retry} pay={splitPay} shift={{ date, startTime, endTime }} rate={rate} salaryType={salaryType} geonameid={geonameid}
+            <PayBreakdownSection
+              lookup={lookup} onRetry={retry} pay={splitPay} shift={{ date, startTime, endTime }} salaryType={salaryType} geonameid={geonameid}
               job={job} premiumApplied={premiumApplied} onPremiumChange={handlePremiumChange}
               onAnswerJobPremium={answerJobPremium} answering={answeringPremium}
             />
           )}
 
-          {/* With Shabbat hours (new calculation) the total is at the bottom of the Shabbat card */}
-          {baseSalary !== null && !(mode === 'split' && hasShabbatHours(splitPay)) && (
+          {/* With Shabbat or overtime hours (new calculation) the total is at the bottom of the pay card */}
+          {baseSalary !== null && !(mode === 'split' && hasPayBreakdown(splitPay)) && (
             <div className="edit-calc-result">
               <span className="edit-calc-label">{t('shabbat.baseSalaryHours', { hours: formatHM(hours) })}</span>
               <span className="edit-calc-value">{formatMoney(baseSalary)}</span>
@@ -338,6 +363,8 @@ export const ShiftEditForm = ({ shift, onSaved, onCancel }: Props) => {
             <button type="button" className="shabbat-btn" onClick={revertToSaved}>{t('shiftEdit.keepOld')}</button>
           </div>
         )}
+
+        <DayUpdatesNotice updates={dayUpdates} />
 
       </div>
 

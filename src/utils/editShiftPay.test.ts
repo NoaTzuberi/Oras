@@ -10,15 +10,23 @@ const legacy: Shift = {
   isShabbatOrHoliday: true, used150: true,
   jobId: null, hourlyRate: null, regularHours: null, shabbatHours: null,
   shabbatPremiumApplied: null, shabbatVerified: null,
+  overtimeCalculated: null, dailyThresholdMinutes: null, isNightShift: null,
+  overtimeMinutes125: null, overtimeMinutes150: null, shabbatOtMinutes175: null, shabbatOtMinutes200: null,
 }
 
 const unchanged = { date: legacy.date, startTime: legacy.startTime, endTime: legacy.endTime, jobId: legacy.jobId, premiumTouched: false }
 
 describe('isPreservedShift', () => {
   it('legacy (NULL) and unverified (false) shifts keep their pay; verified ones are recalculated', () => {
-    expect(isPreservedShift({ shabbatVerified: null })).toBe(true)
-    expect(isPreservedShift({ shabbatVerified: false })).toBe(true)
-    expect(isPreservedShift({ shabbatVerified: true })).toBe(false)
+    expect(isPreservedShift({ shabbatVerified: null, overtimeCalculated: null })).toBe(true)
+    expect(isPreservedShift({ shabbatVerified: false, overtimeCalculated: null })).toBe(true)
+    expect(isPreservedShift({ shabbatVerified: true, overtimeCalculated: true })).toBe(false)
+  })
+
+  it('verified Shabbat split saved before overtime (overtime NULL) also keeps its pay', () => {
+    expect(isPreservedShift({ shabbatVerified: true, overtimeCalculated: null })).toBe(true)
+    expect(isPreservedShift({ shabbatVerified: true, overtimeCalculated: false })).toBe(false) // computed, OT off for the job
+    expect(isPreservedShift({ shabbatVerified: false, overtimeCalculated: true })).toBe(true)  // unverified
   })
 })
 
@@ -58,6 +66,14 @@ describe('preservedBasePay', () => {
 
   it('rate change on a non-150% shift: rate x hours', () => {
     expect(preservedBasePay({ ...legacy, used150: false, baseSalary: 325 }, { salaryType: 'hourly', rate: 60, rateChanged: true, totalSalary: null })).toBe(390)
+  })
+
+  it('rate change on a split shift (stored rate): the stored pay scaled to the new rate', () => {
+    // 5h regular + 6h Shabbat x1.5 at 50 = 700 -> at 60 = 840; with overtime it's linear in the rate too
+    const split = { ...legacy, hours: 11, hourlyRate: 50, baseSalary: 700, used150: true, shabbatVerified: true, regularHours: 5, shabbatHours: 6 }
+    expect(preservedBasePay(split, { salaryType: 'hourly', rate: 60, rateChanged: true, totalSalary: null })).toBe(840)
+    const unverifiedOt = { ...legacy, hours: 10, hourlyRate: 50, baseSalary: 517.5, used150: false, shabbatVerified: false }
+    expect(preservedBasePay(unverifiedOt, { salaryType: 'hourly', rate: 55, rateChanged: true, totalSalary: null })).toBe(569.25)
   })
 
   it('switching to daily total uses the typed amount', () => {

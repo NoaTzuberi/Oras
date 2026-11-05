@@ -55,7 +55,10 @@ const resources = {
         breakdownTitle: "לפי עבודה",
         breakdownRow: "{{hours}} ש׳ · {{gross}}",
         noJob: "ללא עבודה",
-        netAllOnly: "נטו וניכויים מוצגים רק ב״הכל״, כי הם תלויים בסך ההכנסה מכל העבודות"
+        netAllOnly: "נטו וניכויים מוצגים רק ב״הכל״, כי הם תלויים בסך ההכנסה מכל העבודות",
+        overtimeTitle: "שעות נוספות",
+        overtimeSubtitle: "החודש, לפי שיעור",
+        overtimeRow: "{{pct}}%"
       },
 
       auth: {
@@ -162,7 +165,23 @@ const resources = {
         pensionOff: "ללא פנסיה",
         errorPensionPct: "אחוז פנסיה לא תקין (0–20)",
         tipsInPayslip: "הטיפים מופיעים בתלוש",
-        tipsInPayslipHint: "כבוי = טיפים במזומן מחוץ לתלוש: לא חייבים במס ונוספים לנטו"
+        tipsInPayslipHint: "כבוי = טיפים במזומן מחוץ לתלוש: לא חייבים במס ונוספים לנטו",
+        overtimeEnabled: "תשלום שעות נוספות",
+        overtimeHint: "שעות מעבר ליום העבודה: השעתיים הראשונות 125%, אחר כך 150% (בשבת 175% / 200%)",
+        overtimeOff: "ללא שעות נוספות",
+        weekPattern: "שבוע עבודה",
+        week5: "5 ימים",
+        week6: "6 ימים",
+        weekCustom: "מותאם",
+        week5Hint: "שעות נוספות אחרי 8:36 ביום, ו־7:36 ביום המקוצר",
+        week6Hint: "שעות נוספות אחרי 8 שעות ביום, ו־7 שעות ביום שישי",
+        weekCustomHint: "שעות נוספות אחרי מספר השעות שתגדירו, בכל יום",
+        shortDay: "היום המקוצר (7:36)",
+        shortDayAssumption: "יום מקוצר (7:36): {{day}}. שנו אם המעסיק שלכם קובע יום אחר.",
+        customThreshold: "שעות עד לשעות נוספות",
+        errorThreshold: "מספר שעות לא תקין (1–24)",
+        nightNote: "במשמרת לילה (שעתיים או יותר בין 22:00 ל־06:00) שעות נוספות תמיד אחרי 7 שעות",
+        weekdayNames: ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"]
       },
 
       shabbat: {
@@ -193,6 +212,26 @@ const resources = {
         dailyTotalSplit: "{{regular}} ש׳ רגילות · {{shabbat}} ש׳ שבת — הסכום היומי לא מפוצל",
         timelineLabel: "משמרת {{start}}–{{end}}: {{regular}} ש׳ רגילות, {{shabbat}} ש׳ שבת",
         baseSalaryHours: "שכר בסיס · {{hours}} ש׳"
+      },
+
+      pay: {
+        cardTitle: "פירוט שכר",
+        overtimeAfter: "שעות נוספות אחרי {{hours}} ש׳ עבודה היום",
+        nightShift: "משמרת לילה (שעתיים או יותר בין 22:00 ל־06:00): יום עבודה של 7 שעות",
+        earlierToday: "כולל {{hours}} ש׳ ממשמרת קודמת היום באותה עבודה",
+        regular: "רגילות",
+        overtime: "שעות נוספות {{pct}}%",
+        shabbat: "שבת {{pct}}%",
+        shabbatNoPremium: "שבת (ללא תוספת)",
+        shabbatOvertime: "שבת + נוספות {{pct}}%",
+        tickOt: "תחילת שעות נוספות",
+        part: "{{hours}} ש׳ {{label}}",
+        dailyTotalInfo: "{{parts}} — הסכום היומי לא מפוצל",
+        timelineLabel: "משמרת {{start}}–{{end}}: {{parts}}",
+        dayUpdate: "זה מעדכן גם את המשמרת שלך {{start}}–{{end}}: {{delta}}",
+        dayUpdateHoursOnly: "זה מעדכן גם את השעות הנוספות במשמרת {{start}}–{{end}} (השכר לא משתנה)",
+        dayUpdateFailed: "נשמר, אבל לא הצלחנו לעדכן משמרת אחרת באותו יום. פתחו אותה ולחצו על שמור שינויים.",
+        deleteDayUpdateFailed: "נמחק, אבל לא הצלחנו לעדכן משמרת אחרת באותו יום. פתחו אותה ולחצו על שמור שינויים."
       },
 
       jobFilter: {
@@ -234,7 +273,8 @@ const resources = {
         legacyNote: "המשמרת נשמרה בחישוב הקודם, ללא פיצול שעות שבת.",
         legacyNote150: "המשמרת נשמרה בחישוב הקודם: 150% על כל המשמרת.",
         unverifiedNote: "זמני השבת לא נטענו כשהמשמרת נשמרה, ולכן היא חושבה לפי שכר רגיל.",
-        recalculate: "חשב מחדש לפי שעות השבת החדשות",
+        preOvertimeNote: "המשמרת נשמרה לפני חישוב השעות הנוספות.",
+        recalculate: "חשב מחדש (שבת ושעות נוספות)",
         recheck: "בדוק שוב את זמני השבת",
         previewTitle: "תצוגה מקדימה של החישוב מחדש",
         before: "לפני",
@@ -242,7 +282,7 @@ const resources = {
         beforeHours: "{{hours}} ש׳",
         confirmRecalc: "אשר חישוב מחדש",
         previewHint: "שום דבר לא נשמר עד שלוחצים על שמור שינויים.",
-        switchNotice: "המשמרת תחושב מחדש לפי שעות השבת החדשות. שכר: {{from}} ← {{to}}",
+        switchNotice: "המשמרת תחושב מחדש בחישוב החדש (שבת ושעות נוספות). שכר: {{from}} ← {{to}}",
         keepOld: "השאר את החישוב הקודם"
       },
 
@@ -402,7 +442,10 @@ const resources = {
         breakdownTitle: "By job",
         breakdownRow: "{{hours}} h · {{gross}}",
         noJob: "No job",
-        netAllOnly: "Net and deductions show on “All” only, since they depend on your combined income"
+        netAllOnly: "Net and deductions show on “All” only, since they depend on your combined income",
+        overtimeTitle: "Overtime",
+        overtimeSubtitle: "This month, by rate",
+        overtimeRow: "{{pct}}%"
 
       },
 
@@ -510,7 +553,23 @@ const resources = {
         pensionOff: "no pension",
         errorPensionPct: "Invalid pension % (0–20)",
         tipsInPayslip: "Tips are on the payslip",
-        tipsInPayslipHint: "Off = cash tips outside the payslip: not taxed, added to net"
+        tipsInPayslipHint: "Off = cash tips outside the payslip: not taxed, added to net",
+        overtimeEnabled: "Pay overtime",
+        overtimeHint: "Hours over the work day: first 2 at 125%, then 150% (175% / 200% on Shabbat)",
+        overtimeOff: "no overtime",
+        weekPattern: "Work week",
+        week5: "5 days",
+        week6: "6 days",
+        weekCustom: "Custom",
+        week5Hint: "Overtime after 8:36 a day, and 7:36 on the short day",
+        week6Hint: "Overtime after 8h a day, and 7h on Friday",
+        weekCustomHint: "Overtime after the hours you set, every day",
+        shortDay: "Short day (7:36)",
+        shortDayAssumption: "Short day (7:36): {{day}}. Change if your employer uses a different day.",
+        customThreshold: "Hours before overtime",
+        errorThreshold: "Invalid hours (1–24)",
+        nightNote: "Night shifts (2+ hours between 22:00–06:00) always get overtime after 7h",
+        weekdayNames: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
       },
 
       shabbat: {
@@ -541,6 +600,26 @@ const resources = {
         dailyTotalSplit: "{{regular}} h regular · {{shabbat}} h Shabbat — daily total isn't split",
         timelineLabel: "Shift {{start}}–{{end}}: {{regular}} h regular, {{shabbat}} h Shabbat",
         baseSalaryHours: "Base salary · {{hours}} h"
+      },
+
+      pay: {
+        cardTitle: "Pay breakdown",
+        overtimeAfter: "Overtime after {{hours}} h of work today",
+        nightShift: "Night shift (2+ hours between 22:00–06:00): 7h work day",
+        earlierToday: "Counts {{hours}} h from your earlier shift today at this job",
+        regular: "Regular",
+        overtime: "Overtime {{pct}}%",
+        shabbat: "Shabbat {{pct}}%",
+        shabbatNoPremium: "Shabbat (no premium)",
+        shabbatOvertime: "Shabbat + overtime {{pct}}%",
+        tickOt: "Overtime starts",
+        part: "{{hours}} h {{label}}",
+        dailyTotalInfo: "{{parts}} — daily total isn't split",
+        timelineLabel: "Shift {{start}}–{{end}}: {{parts}}",
+        dayUpdate: "This also updates your {{start}}–{{end}} shift: {{delta}}",
+        dayUpdateHoursOnly: "This also updates the overtime hours of your {{start}}–{{end}} shift (pay unchanged)",
+        dayUpdateFailed: "Saved, but your other shift on this day couldn't be updated. Open it and tap Save changes.",
+        deleteDayUpdateFailed: "Deleted, but your other shift on this day couldn't be updated. Open it and tap Save changes."
       },
 
       jobFilter: {
@@ -582,7 +661,8 @@ const resources = {
         legacyNote: "Saved with the previous calculation, without splitting Shabbat hours.",
         legacyNote150: "Saved with the previous calculation: 150% on the whole shift.",
         unverifiedNote: "Shabbat times didn't load when this shift was saved, so it was paid at the regular rate.",
-        recalculate: "Recalculate with the new Shabbat calculation",
+        preOvertimeNote: "Saved before overtime was calculated.",
+        recalculate: "Recalculate (Shabbat and overtime)",
         recheck: "Re-check Shabbat times",
         previewTitle: "Recalculation preview",
         before: "Before",
@@ -590,7 +670,7 @@ const resources = {
         beforeHours: "{{hours}} h",
         confirmRecalc: "Confirm recalculation",
         previewHint: "Nothing is saved until you tap Save changes.",
-        switchNotice: "This shift will be recalculated with the new Shabbat hours. Pay: {{from}} → {{to}}",
+        switchNotice: "This shift will be recalculated with the new calculation (Shabbat and overtime). Pay: {{from}} → {{to}}",
         keepOld: "Keep the previous calculation"
       },
 

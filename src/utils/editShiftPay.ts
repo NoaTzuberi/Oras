@@ -6,11 +6,14 @@ import type { Shift } from '../context/ShiftContext'
 //   pay = rate x hours x (1.5 if used_150), the whole shift.
 // - unverified shifts (shabbat_verified false): Shabbat times failed to
 //   load when saved, paid at the regular rate.
-// Verified shifts (true) are always recalculated with the split.
+// - shifts saved before overtime (overtime_calculated NULL), even with a
+//   verified Shabbat split: paid without overtime.
+// Verified shifts saved with overtime are always recalculated.
 
 const round2 = (n: number) => Math.round(n * 100) / 100
 
-export const isPreservedShift = (shift: Pick<Shift, 'shabbatVerified'>): boolean => shift.shabbatVerified !== true
+export const isPreservedShift = (shift: Pick<Shift, 'shabbatVerified' | 'overtimeCalculated'>): boolean =>
+  shift.shabbatVerified !== true || shift.overtimeCalculated === null
 
 /**
  * Starting value of the per-shift premium checkbox (null = follow the job).
@@ -46,6 +49,9 @@ export const recalcTriggered = (shift: Shift, edited: EditedFields): boolean =>
  * Base pay for a preserved shift with the old formula.
  * Nothing pay-related changed -> the stored amount exactly (re-deriving
  * the rate rounds it, e.g. 500 / 7h / 1.5 = 47.62 -> 500.01).
+ * Rate change on a shift with a stored rate (saved with the Shabbat
+ * split, with or without overtime): pay is linear in the rate, so the
+ * stored amount is scaled. Legacy shifts: rate x hours (x1.5 if used_150).
  */
 export const preservedBasePay = (
   shift: Shift,
@@ -54,6 +60,9 @@ export const preservedBasePay = (
   if (edited.salaryType === 'total') return edited.totalSalary
   if (edited.rate == null || isNaN(edited.rate)) return null
   if (edited.salaryType === shift.salaryType && !edited.rateChanged) return shift.baseSalary
+  if (edited.salaryType === shift.salaryType && shift.shabbatVerified !== null && shift.hourlyRate) {
+    return round2(shift.baseSalary * edited.rate / shift.hourlyRate)
+  }
   const premium = edited.salaryType === shift.salaryType && shift.used150 ? 1.5 : 1
   return round2(edited.rate * shift.hours * premium)
 }

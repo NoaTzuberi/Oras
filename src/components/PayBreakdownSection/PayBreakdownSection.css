@@ -56,8 +56,13 @@
 }
 
 .shabbat-timeline__seg { position: absolute; top: 0; bottom: 0; }
-.shabbat-timeline__seg--regular { background: rgba(148, 163, 184, 0.35); }
-.shabbat-timeline__seg--shabbat { background: #8b5cf6; }
+/* One color per pay rate: overtime in amber, Shabbat in violet, both in fuchsia */
+.pay-seg--regular { background: rgba(148, 163, 184, 0.35); }
+.pay-seg--ot125 { background: #fbbf24; }
+.pay-seg--ot150 { background: #d97706; }
+.pay-seg--shabbat { background: #8b5cf6; }
+.pay-seg--shabbatOt175 { background: #c026d3; }
+.pay-seg--shabbatOt200 { background: #86198f; }
 
 .shabbat-timeline__tick {
   position: absolute;
@@ -81,6 +86,7 @@
   transform: translateX(-50%);
 }
 
+.shabbat-timeline__label.is-ot { color: #b45309; }
 html[dir="rtl"] .shabbat-timeline__label { transform: translateX(50%); }
 .shabbat-timeline__label.is-start,
 html[dir="rtl"] .shabbat-timeline__label.is-start { transform: none; }
@@ -109,13 +115,29 @@ html[dir="rtl"] .shabbat-timeline__label.is-end { transform: translateX(100%); }
   min-width: 0;
 }
 
-.shabbat-stat--shabbat {
+.pay-stat--shabbat {
   background: rgba(139, 92, 246, 0.1);
   border-color: rgba(139, 92, 246, 0.3);
 }
 
+.pay-stat--ot125,
+.pay-stat--ot150 {
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(217, 119, 6, 0.3);
+}
+
+.pay-stat--shabbatOt175,
+.pay-stat--shabbatOt200 {
+  background: rgba(192, 38, 211, 0.08);
+  border-color: rgba(192, 38, 211, 0.3);
+}
+
 .shabbat-stat__label { font-size: 11px; color: #6b6f94; }
-.shabbat-stat--shabbat .shabbat-stat__label { color: #6d28d9; font-weight: 600; }
+.pay-stat--shabbat .shabbat-stat__label { color: #6d28d9; font-weight: 600; }
+.pay-stat--ot125 .shabbat-stat__label,
+.pay-stat--ot150 .shabbat-stat__label { color: #b45309; font-weight: 600; }
+.pay-stat--shabbatOt175 .shabbat-stat__label,
+.pay-stat--shabbatOt200 .shabbat-stat__label { color: #a21caf; font-weight: 600; }
 
 .shabbat-stat__hours {
   font-family: 'Syne', sans-serif;
@@ -208,3 +230,13 @@ html[dir="rtl"] .shabbat-timeline__label.is-end { transform: translateX(100%); }
 }
 
 .shabbat-warning__sub { font-size: 11px; font-weight: 400; }
+
+.pay-night-note {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.06);
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}

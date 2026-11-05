@@ -10,6 +10,8 @@ const legacyShiftFields = {
   shabbatHours: null,
   shabbatPremiumApplied: null,
   shabbatVerified: null,
+  overtimeCalculated: null, dailyThresholdMinutes: null, isNightShift: null,
+  overtimeMinutes125: null, overtimeMinutes150: null, shabbatOtMinutes175: null, shabbatOtMinutes200: null,
 }
 
 describe('getMonthlyBreakdown', () => {

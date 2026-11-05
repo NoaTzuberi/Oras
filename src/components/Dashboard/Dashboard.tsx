@@ -8,7 +8,12 @@ import { filterShiftsByJob, jobBreakdown } from '../../utils/jobFilter'
 import { jobDisplayName } from '../../utils/jobs'
 import { NO_JOB_COLOR, jobColor } from '../../utils/jobColors'
 import { formatHM, formatMoney } from '../../utils/format'
+import { monthlyOvertime, type OvertimeByRate } from '../../utils/overtimeStats'
 import './Dashboard.css'
+
+// Same colors as the overtime parts of the shift timeline (PayBreakdownSection.css)
+const OT_RATE_COLORS: Record<keyof OvertimeByRate, string> = { 125: '#fbbf24', 150: '#d97706', 175: '#c026d3', 200: '#86198f' }
+const OT_RATES = [125, 150, 175, 200] as const
 
 export const Dashboard = () => {
   const { taxInfo, userProfile, filteredShifts: monthShifts, jobs } = useShifts()
@@ -35,6 +40,10 @@ const totalEarnings = filteredShifts.reduce(
 
 const averageHourlyRate =
   totalHours > 0 ? totalEarnings / totalHours : 0
+
+  // Paid overtime this month (all jobs, or the selected job's tab)
+  const overtime = monthlyOvertime(filteredShifts)
+  const overtimeTotal = OT_RATES.reduce((sum, r) => sum + overtime[r], 0)
 
   // "All" uses the tax calculation's gross (same number); a job tab sums its shifts
   const gross = selectedJob ? Math.round(totalEarnings * 100) / 100 : taxInfo.grossSalary
@@ -119,6 +128,26 @@ const averageHourlyRate =
             <h3>{t("dashboard.hoursTitle")}</h3>
             <FitText className="card-value">{formatHM(totalHours)}</FitText>
             <span className="card-subtitle">{t("dashboard.hoursSubtitle")}</span>
+          </div>
+        )}
+
+        {/* Overtime hours by rate, on "All" and on each job tab */}
+        {overtimeTotal > 0 && (
+          <div className="card card--breakdown card--overtime">
+            <h3>{t("dashboard.overtimeTitle")}</h3>
+            <FitText className="card-value">{formatHM(overtimeTotal / 60)}</FitText>
+            <ul className="job-breakdown">
+              {OT_RATES.filter(r => overtime[r] > 0).map(r => (
+                <li key={r} className="job-breakdown__row" style={{ '--job-color': OT_RATE_COLORS[r] } as React.CSSProperties}>
+                  <span className="job-breakdown__name">
+                    <span className="job-breakdown__dot" aria-hidden="true" />
+                    <span className="job-breakdown__label">{t("dashboard.overtimeRow", { pct: r })}</span>
+                  </span>
+                  <span className="job-breakdown__value">{formatHM(overtime[r] / 60)}</span>
+                </li>
+              ))}
+            </ul>
+            <span className="card-subtitle">{t("dashboard.overtimeSubtitle")}</span>
           </div>
         )}
 

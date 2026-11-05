@@ -5,6 +5,7 @@ import type { Job, Shift } from '../context/ShiftContext'
 const job = (id: string, archived = false): Job => ({
   id, name: id, hourlyRate: 50, geonameid: 293397, paysShabbatPremium: true, color: null, archived,
   pensionActive: true, pensionEmployeePct: 6, tipsInPayslip: true,
+  weekPattern: null, customDailyThresholdHours: null, overtimeEnabled: null, shortDayWeekday: null,
 })
 
 const shift = (jobId: string | null): Shift => ({
@@ -13,6 +14,8 @@ const shift = (jobId: string | null): Shift => ({
   isShabbatOrHoliday: false, used150: false,
   jobId, hourlyRate: null, regularHours: null, shabbatHours: null,
   shabbatPremiumApplied: null, shabbatVerified: null,
+  overtimeCalculated: null, dailyThresholdMinutes: null, isNightShift: null,
+  overtimeMinutes125: null, overtimeMinutes150: null, shabbatOtMinutes175: null, shabbatOtMinutes200: null,
 })
 
 describe('pickLastUsedJobId', () => {
