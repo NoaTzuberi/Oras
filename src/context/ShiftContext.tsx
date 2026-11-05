@@ -53,7 +53,7 @@ export type Job = {
   pensionActive: boolean | null
   pensionEmployeePct: number | null
   tipsInPayslip: boolean | null
-  // Overtime settings. NULL = the default (5-day week, OT on, short day Thursday).
+  // Overtime settings. NULL = the default (5-day week, OT on, short day not known).
   weekPattern: WeekPattern | null
   customDailyThresholdHours: number | null
   overtimeEnabled: boolean | null

@@ -6,6 +6,7 @@ import { shiftInterval } from '../../utils/shabbat'
 import { buildPayTimeline, jerusalemTime, jerusalemWeekdayIndex, overlappingWindow, type PayTimelineTick } from '../../utils/shabbatTimeline'
 import { bucketLabel, bucketsText, usedBuckets } from '../../utils/payLabels'
 import { formatHM, formatMoney } from '../../utils/format'
+import { NIGHT_DAY_MIN, dailyThresholdMinutes, resolveOvertimeSettings } from '../../utils/overtime'
 import { Switch } from '../Switch/Switch'
 import './PayBreakdownSection.css'
 
@@ -77,6 +78,12 @@ export const PayBreakdownSection = ({
     if (tick.pct - lastPct >= MIN_LABEL_GAP) { labelled.add(tick); lastPct = tick.pct }
   }
 
+  // The day length without the night rule. At 7:00 or less the night rule changed nothing.
+  const normalThreshold = dailyThresholdMinutes(resolveOvertimeSettings(job), shift.date, false)
+  const nightNote = normalThreshold > NIGHT_DAY_MIN
+    ? `${t('pay.nightShiftRule')} ${t('pay.nightShiftEffect', { normalThreshold: formatHM(normalThreshold / 60) })}`
+    : t('pay.nightShiftRule')
+
   const needsAnswer = hourly && withShabbat && job !== null && job.paysShabbatPremium === null
   const buckets = usedBuckets(ot.minutes)
   const partsText = bucketsText(t, ot.minutes, premium)
@@ -109,7 +116,7 @@ export const PayBreakdownSection = ({
 
         {/* Explains the 7h day, so the jump at exactly 2 night hours doesn't look like a bug */}
         {ot.enabled && ot.isNight && (
-          <p className="pay-night-note">🌙 {t('pay.nightShift')}</p>
+          <p className="pay-night-note">🌙 {nightNote}</p>
         )}
 
         <div

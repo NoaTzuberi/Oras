@@ -15,6 +15,7 @@ const SHABBAT: TimeWindow = { start: jerusalemDateTime(FRI, '16:34'), end: jerus
 const windows = [SHABBAT]
 
 const fiveDay = DEFAULT_OVERTIME_SETTINGS
+const fiveDayThuShort: OvertimeSettings = { ...fiveDay, shortDayWeekday: 4 }
 const sixDay: OvertimeSettings = { ...fiveDay, weekPattern: '6day' }
 
 const iv = (date: string, startTime: string, endTime: string) => shiftInterval({ date, startTime, endTime })
@@ -29,8 +30,8 @@ const single = (date: string, startTime: string, endTime: string, settings = fiv
 }
 
 describe('resolveOvertimeSettings', () => {
-  it('NULL job settings (or no job) mean 5-day week, OT on, short day Thursday', () => {
-    expect(resolveOvertimeSettings(null)).toEqual({ weekPattern: '5day', customThresholdHours: null, enabled: true, shortDayWeekday: 4 })
+  it('NULL job settings (or no job) mean 5-day week, OT on, short day not known', () => {
+    expect(resolveOvertimeSettings(null)).toEqual({ weekPattern: '5day', customThresholdHours: null, enabled: true, shortDayWeekday: null })
     expect(resolveOvertimeSettings({ weekPattern: null, customDailyThresholdHours: null, overtimeEnabled: null, shortDayWeekday: null }))
       .toEqual(DEFAULT_OVERTIME_SETTINGS)
   })
@@ -42,11 +43,17 @@ describe('resolveOvertimeSettings', () => {
 })
 
 describe('dailyThresholdMinutes', () => {
-  it('5-day week: 8:36, short day (Thursday by default) 7:36', () => {
-    expect(dailyThresholdMinutes(fiveDay, WED, false)).toBe(516)
-    expect(dailyThresholdMinutes(fiveDay, THU, false)).toBe(456)
-    expect(dailyThresholdMinutes(fiveDay, FRI, false)).toBe(516)
+  it('5-day week: 8:36, and 7:36 on the chosen short day', () => {
+    expect(dailyThresholdMinutes(fiveDayThuShort, WED, false)).toBe(516)
+    expect(dailyThresholdMinutes(fiveDayThuShort, THU, false)).toBe(456)
+    expect(dailyThresholdMinutes(fiveDayThuShort, FRI, false)).toBe(516)
     expect(dailyThresholdMinutes({ ...fiveDay, shortDayWeekday: 0 }, '2026-11-01', false)).toBe(456)
+  })
+
+  it('5-day week, short day not known (the default): 8:36 every day', () => {
+    for (const date of ['2026-11-01', '2026-11-02', '2026-11-03', WED, THU, FRI, SAT]) {
+      expect(dailyThresholdMinutes(fiveDay, date, false)).toBe(516)
+    }
   })
 
   it('6-day week: 8h, Friday 7h', () => {
@@ -56,7 +63,7 @@ describe('dailyThresholdMinutes', () => {
 
   it('night shift: 7h, the lower threshold wins', () => {
     expect(dailyThresholdMinutes(fiveDay, WED, true)).toBe(420)
-    expect(dailyThresholdMinutes(fiveDay, THU, true)).toBe(420) // short day 7:36 vs night 7:00
+    expect(dailyThresholdMinutes(fiveDayThuShort, THU, true)).toBe(420) // short day 7:36 vs night 7:00
   })
 
   it('custom threshold, and the lower of custom / 7h on a night shift', () => {
@@ -64,7 +71,7 @@ describe('dailyThresholdMinutes', () => {
     expect(dailyThresholdMinutes(custom(9), WED, false)).toBe(540)
     expect(dailyThresholdMinutes(custom(9), WED, true)).toBe(420)
     expect(dailyThresholdMinutes(custom(6), WED, true)).toBe(360)
-    expect(dailyThresholdMinutes(custom(7.5), THU, false)).toBe(450) // custom ignores the short day
+    expect(dailyThresholdMinutes({ ...custom(7.5), shortDayWeekday: 4 }, THU, false)).toBe(450) // custom ignores the short day
   })
 })
 
@@ -109,9 +116,14 @@ describe('daily overtime (₪50/h)', () => {
     expect(r.pay.total).toBe(475)
   })
 
-  it('5-day job, Thursday (short day) 9h: 7:36 @100%, 1:24 @125%', () => {
-    const r = single(THU, '08:00', '17:00')
+  it('5-day job, Thursday chosen as the short day, 9h: 7:36 @100%, 1:24 @125%', () => {
+    const r = single(THU, '08:00', '17:00', fiveDayThuShort)
     expect(r.minutes).toMatchObject({ regular: 456, ot125: 84 })
+  })
+
+  it('5-day job, short day not known, Thursday 9h: 8:36 @100%, 0:24 @125%', () => {
+    const r = single(THU, '08:00', '17:00')
+    expect(r.minutes).toMatchObject({ regular: 516, ot125: 24 })
   })
 
   it('night shift 22:00-07:00 (9h): 7h @100%, 2h @125%', () => {

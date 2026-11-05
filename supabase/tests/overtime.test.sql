@@ -17,7 +17,7 @@ select is((select week_pattern from public.jobs where id = 'bbbbbbbb-0000-0000-0
 select is((select overtime_enabled from public.jobs where id = 'bbbbbbbb-0000-0000-0000-000000000001'),
   true, 'new job: overtime on by default');
 select is((select short_day_weekday from public.jobs where id = 'bbbbbbbb-0000-0000-0000-000000000001'),
-  null::smallint, 'new job: short day NULL (= Thursday in the app)');
+  null::smallint, 'new job: short day NULL (= not sure in the app)');
 
 select throws_ok(
   $$update public.jobs set week_pattern = '4day' where id = 'bbbbbbbb-0000-0000-0000-000000000001'$$,

@@ -31,7 +31,7 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
   const [overtimeEnabled, setOvertimeEnabled] = useState(otDefaults.enabled)
   const [weekPattern, setWeekPattern] = useState<WeekPattern>(otDefaults.weekPattern)
   const [customThreshold, setCustomThreshold] = useState(initial.customDailyThresholdHours != null ? String(initial.customDailyThresholdHours) : '')
-  // NULL (the Thursday default) stays NULL unless the user picks a day
+  // NULL = "not sure" (the default): no short day, 8:36 every day
   const [shortDay, setShortDay] = useState<number | null>(initial.shortDayWeekday)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -185,28 +185,30 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
             <span className="switch-hint">
               {t(weekPattern === '5day' ? 'jobs.week5Hint' : weekPattern === '6day' ? 'jobs.week6Hint' : 'jobs.weekCustomHint')}
             </span>
+            <span className="switch-hint">{t('jobs.overtimeRates')}</span>
           </div>
 
           {weekPattern === '5day' && (
             <label className="job-editor__field">
-              {/* An assumption, so say it plainly: the law leaves the day to the employer */}
-              <span className="switch-hint">
-                {t('jobs.shortDayAssumption', { day: weekdayNames[shortDay ?? otDefaults.shortDayWeekday] })}
-              </span>
+              {/* The law leaves the day to the employer, so we don't guess: "not sure" is the default */}
+              <span className="switch-title">{t('jobs.shortDay')}</span>
+              <span className="switch-hint">{t('jobs.shortDayAssumption')}</span>
               <select
                 className="settings-input"
-                aria-label={t('jobs.shortDay')}
-                value={shortDay ?? otDefaults.shortDayWeekday}
-                onChange={e => setShortDay(Number(e.target.value))}
+                value={shortDay ?? ''}
+                onChange={e => setShortDay(e.target.value === '' ? null : Number(e.target.value))}
               >
+                <option value="">{t('jobs.shortDayUnknown')}</option>
                 {weekdayNames.map((name, i) => <option key={i} value={i}>{name}</option>)}
               </select>
+              {shortDay === null && <span className="switch-hint">{t('jobs.shortDayUnknownHint')}</span>}
+              <span className="switch-hint job-editor__help">{t('jobs.shortDayHowToFind')}</span>
             </label>
           )}
 
           {weekPattern === 'custom' && (
             <label className="job-editor__field">
-              <span className="switch-hint">{t('jobs.customThreshold')}</span>
+              <span className="switch-title">{t('jobs.customThreshold')}</span>
               <input
                 type="number"
                 className="settings-input"
@@ -214,13 +216,14 @@ const JobEditor = ({ initial, onSave, onCancel }: EditorProps) => {
                 min={1}
                 max={24}
                 step={0.1}
-                placeholder="8.6"
+                placeholder="8.5"
                 onChange={e => setCustomThreshold(e.target.value)}
               />
+              <span className="switch-hint">{t('jobs.customThresholdHint')}</span>
             </label>
           )}
 
-          <span className="switch-hint">{t('jobs.nightNote')}</span>
+          <span className="switch-hint">🌙 {t('jobs.nightNote')}</span>
         </>
       )}
 

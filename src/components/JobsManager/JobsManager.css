@@ -65,3 +65,9 @@
 .job-add-btn { align-self: flex-start; }
 
 .job-archived-toggle { align-self: flex-start; padding-inline: 0; }
+
+/* Small "how to find out" line under a setting */
+.job-editor__help { font-size: 11px; opacity: 0.85; }
+
+/* Week pattern: "Custom" / "מותאם אישית" is the longest label, so it gets more room (one line at 375px) */
+.job-editor .toggle-row .toggle-btn:last-child { flex: 1.4; }

@@ -14,7 +14,8 @@
 //   מלא". Exactly 2:00 counts (the page's 04:00-12:00 example).
 // - "יום עבודה ושבוע עבודה": the short day is a fixed day the employer
 //   chooses ("היום המקוצר יהיה ביום מוגדר וקבוע"), so it's a job setting.
-//   Default Thursday (last day of a Sun-Thu week).
+//   Default: not known (NULL) = no short day, 8:36 every day. At most one
+//   hour a week of difference, and we don't guess the employer's day.
 //
 // All times are real instants; wall-clock times are in Asia/Jerusalem.
 
@@ -27,17 +28,15 @@ export type OvertimeSettings = {
   /** Only for 'custom'. NULL there means the 5-day rules. */
   customThresholdHours: number | null
   enabled: boolean
-  /** 0 = Sunday ... 6 = Saturday. Only for the 5-day week. */
-  shortDayWeekday: number
+  /** 0 = Sunday ... 6 = Saturday. Only for the 5-day week. NULL = not known: no short day. */
+  shortDayWeekday: number | null
 }
-
-export const DEFAULT_SHORT_DAY_WEEKDAY = 4 // Thursday
 
 export const DEFAULT_OVERTIME_SETTINGS: OvertimeSettings = {
   weekPattern: '5day',
   customThresholdHours: null,
   enabled: true,
-  shortDayWeekday: DEFAULT_SHORT_DAY_WEEKDAY,
+  shortDayWeekday: null,
 }
 
 type StoredJobSettings = {
@@ -47,12 +46,12 @@ type StoredJobSettings = {
   shortDayWeekday?: number | null
 }
 
-/** A job's overtime settings; NULL columns (or no job) mean the defaults. */
+/** A job's overtime settings; NULL columns (or no job) mean the defaults (short day: not known). */
 export const resolveOvertimeSettings = (job: StoredJobSettings | null | undefined): OvertimeSettings => ({
   weekPattern: job?.weekPattern ?? DEFAULT_OVERTIME_SETTINGS.weekPattern,
   customThresholdHours: job?.customDailyThresholdHours ?? null,
   enabled: job?.overtimeEnabled ?? DEFAULT_OVERTIME_SETTINGS.enabled,
-  shortDayWeekday: job?.shortDayWeekday ?? DEFAULT_SHORT_DAY_WEEKDAY,
+  shortDayWeekday: job?.shortDayWeekday ?? null,
 })
 
 // ── Thresholds (minutes) ──────────────────────────
@@ -88,7 +87,7 @@ export const dailyThresholdMinutes = (settings: OvertimeSettings, date: string, 
   } else if (settings.weekPattern === '6day') {
     threshold = weekday === FRIDAY ? SIX_DAY_FRIDAY_MIN : SIX_DAY_NORMAL_MIN
   } else {
-    threshold = weekday === settings.shortDayWeekday ? FIVE_DAY_SHORT_MIN : FIVE_DAY_NORMAL_MIN
+    threshold = settings.shortDayWeekday !== null && weekday === settings.shortDayWeekday ? FIVE_DAY_SHORT_MIN : FIVE_DAY_NORMAL_MIN
   }
   return isNight ? Math.min(threshold, NIGHT_DAY_MIN) : threshold
 }

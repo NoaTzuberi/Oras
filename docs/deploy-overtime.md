@@ -7,7 +7,7 @@ adds nullable columns:
   - `week_pattern` (`'5day'` default, `'6day'`, `'custom'`)
   - `custom_daily_threshold_hours` (NULL, 1–24; only for `'custom'`)
   - `overtime_enabled` (default true)
-  - `short_day_weekday` (NULL = Thursday, 0–6)
+  - `short_day_weekday` (NULL = not sure: no short day, 8:36 every day; 0–6)
 - `shifts`:
   - `overtime_calculated` (NULL = saved before overtime)
   - `daily_threshold_minutes`, `is_night_shift`

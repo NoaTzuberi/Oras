@@ -138,7 +138,7 @@ export const ShiftCard = ({ shift, style }: { shift: Shift; style?: React.CSSPro
                       </p>
                     )}
                     {showOvertime && shift.isNightShift && (
-                      <p className="shift-modal__hours-caption">🌙 {t('pay.nightShift')}</p>
+                      <p className="shift-modal__hours-caption">🌙 {t('pay.nightShiftRule')}</p>
                     )}
                     {shift.shabbatVerified === false && (
                       <p className="shift-modal__hours-caption shift-modal__unverified">⚠️ {t('shabbat.unverified')}</p>
